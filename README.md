@@ -2,7 +2,6 @@
 
 ## Tool description
 
----
 **VIOLA (VIsualizer Of Layer Activity)**
 is a tool to visualize activity in multiple 2D layers in an interactive and
 efficient way. It gives an insight into spatially resolved time series
@@ -16,8 +15,10 @@ Detailed documentation can be found in the 'User Manual' and in the 'Developer
 quick guide'.
 
 ## Usage example
+The following description includes generating and processing data from NEST
+by running the scripts in 'test_data'. For skipping these steps, the relevant
+output can already be found in 'test_data/out_raw' and 'test_data/out_proc'.
 
----
 ### 1. Generate spike data with NEST
 
     python topo_brunel_alpha_nest.py
@@ -37,7 +38,7 @@ configuration file for VIOLA
     python viola_nest_preprocessing.py out_raw out_proc
 
 applies a spatial binning and changes the time step, output is stored in
-'output_proc'
+'out_proc'
 
 ### 4. Generate LFP like signal from spike data
 
@@ -51,11 +52,8 @@ applies a spatial binning and changes the time step, output is stored in
 
 ## Dependencies (tested with)
 
----
 - NEST 2.8
 
 ## Authors
 
----
 - Corto Carde, Johanna Senk, Espen Hagen, Benjamin Weyers
-
