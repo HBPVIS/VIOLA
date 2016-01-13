@@ -9,7 +9,7 @@ efficient way. It gives an insight into spatially resolved time series
 such as, for example, simulation results of neural networks with geometry.
 
 The usage example shows how VIOLA can be used to visualize spike data from a
-NEST simulation ( http://nest-simulator.org/ ) of an excitatory and an
+NEST simulation (http://nest-simulator.org/) of an excitatory and an
 inhibitory neuron population with distance-dependent connectivity..
 
 Detailed documentation can be found in the 'User Manual' and in the 'Developer
