@@ -1,0 +1,1 @@
+{"popNum": 2, "dataType": "neuron", "timestamps": 10000, "xLFP": 10, "ySize": 4.0, "popColors": "#ff0000,#8000ff", "yLFP": 10, "timelineLenght": 40, "xSize": 4.0, "posFiles": ["neuron_positions-0.dat", "neuron_positions-1.dat"], "spikesFiles": ["spikes-0.gdf", "spikes-1.gdf"], "resolution": 0.1, "popNames": "EX,IN"}
