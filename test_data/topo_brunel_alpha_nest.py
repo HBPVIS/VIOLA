@@ -33,7 +33,7 @@ The script writes to the output folder 'out_raw':
 Usage:
 ::
 
-    python topo_brunel_alpha_nest.py
+    python topo_brunel_alpha_nest.py out_raw
 '''
 
 '''
@@ -48,6 +48,7 @@ import nest.topology as tp
 
 import time
 import os
+import sys
 import glob
 import numpy as np
 from numpy import exp, random, zeros_like, r_
@@ -233,7 +234,10 @@ conn_dict_IN = {
 Destination for spike output and definition of file prefixes.
 '''
 
-spike_output_path = 'out_raw'
+if len(sys.argv) != 2:
+    spike_output_path = 'out_raw'
+else:
+    spike_output_path = sys.argv[-1]
 label = 'spikes' # spike detectors
 label_positions = 'neuron_positions' # neuron positions
 
