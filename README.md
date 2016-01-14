@@ -58,7 +58,7 @@ applies a spatial binning and changes the time step, output files are stored in
   - binned_sprates_rs_EX.dat, binned_sprates_rs_IN.dat
   - LFPdata.lfp
 
-## Simulation script dependencies (tested with)
+## Simulation script dependencies
 
 - Python 2.7.x
 - numpy
@@ -66,8 +66,12 @@ applies a spatial binning and changes the time step, output files are stored in
 - scipy
 - h5py
 - mpi4py
-
 - NEST 2.8.x
+
+## VIOLA-compatible browsers
+
+- Chrome
+- Opera
 
 ## Authors
 
