@@ -66,7 +66,7 @@ applies a spatial binning and changes the time step, output files are stored in
 - scipy
 - h5py
 - mpi4py
-- NEST 2.8.x
+- NEST 2.10.x
 
 ## VIOLA-compatible browsers
 
