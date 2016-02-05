@@ -39,18 +39,18 @@ manually.
 
 ### 3. Preprocess spike data
 
-    python viola_nest_preprocessing.py out_raw out_proc
+    python nest_preprocessing.py out_raw out_proc
 
 or with OpenMPI:
 
-    mpirun -np 2 python viola_nest_preprocessing.py out_raw out_proc
+    mpirun -np 2 python nest_preprocessing.py out_raw out_proc
 
 applies a spatial binning and changes the time step, output files are stored in
 'out_proc'.
 
 ### 4. Generate LFP like signal from spike data
 
-    python viola_fake_LFP_signal.py out_raw out_proc
+    python fake_LFP_signal.py out_raw out_proc
 
 ### 5. Visualize preprocessed data
 - start VIOLA and load the configuration file 'config_proc.json'
