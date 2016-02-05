@@ -254,9 +254,9 @@ Visu.Graph.prototype = {
 		this.ctxL.textBaseline = "middle";
 		for(var i = 0 ; i < this.data.nLayers ; i++){
 			this.ctxL.fillStyle = this.data.layerColors[i];
-			this.ctxL.fillRect(0,i*this.svgH/this.data.nLayers,20,this.svgH/this.data.nLayers);
+			this.ctxL.fillRect(10,i*this.svgH/this.data.nLayers,20,this.svgH/this.data.nLayers);
 			this.ctxL.fillStyle="black";
-			this.ctxL.fillText(this.data.layerNames[i], 24, i*this.svgH/this.data.nLayers+this.svgH/this.data.nLayers/2);
+			this.ctxL.fillText(this.data.layerNames[i], 34, i*this.svgH/this.data.nLayers+this.svgH/this.data.nLayers/2);
 		}
 	},
     
