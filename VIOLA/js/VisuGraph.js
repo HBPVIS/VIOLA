@@ -334,7 +334,7 @@ Visu.Graph.prototype = {
 		this.ctxA.translate(-this.svgH, 0);
 		this.ctxA.textBaseline = "middle";
 		this.ctxA.font = "12px serif";
-		this.ctxA.fillText("Mean spikes per s",3*this.svgH/4-this.ctxA.measureText("Mean spikes per s").width/2,15);
+		this.ctxA.fillText("Mean spike count (1/s)",3*this.svgH/4-this.ctxA.measureText("Mean spike count (1/s)").width/2,15);
 		this.ctxA.restore();
 	},
 }
