@@ -20,7 +20,8 @@ Inhibitory Spiking Neurons, Journal of Computational Neuroscience 8,
 
 In contrast to the original version which does not take network
 geometry into account, distance-dependent connections are here established
-using the NEST topology module.
+using the NEST topology module and a spatially confined external stimulus is
+added.
 
 The script writes to the output folder 'out_raw':
 - neuron positions
@@ -52,6 +53,8 @@ import sys
 import glob
 import numpy as np
 from numpy import exp, random, zeros_like, r_
+
+random.seed(123456)
 
 
 '''
@@ -115,7 +118,7 @@ Definition of connectivity parameters
 '''
 
 CE    = int(epsilon*NE) # number of excitatory synapses per neuron
-CI    = int(epsilon*NI) # number of inhibitory synapses per neuron  
+CI    = int(epsilon*NI) # number of inhibitory synapses per neuron
 C_tot = int(CI+CE)      # total number of synapses per neuron
 
 '''
@@ -138,7 +141,7 @@ neuron_params= {"C_m":        CMem,
                 "V_reset":    0.0,
                 "V_m":        0.0,
                 "V_th":       theta}
-J      = 0.1        # postsynaptic amplitude in mV
+J      = 0.5        # postsynaptic amplitude in mV (before: 0.1)
 J_unit = ComputePSPnorm(tauMem, CMem, tauSyn)
 J_ex   = J / J_unit # amplitude of excitatory postsynaptic current
 J_in   = -g*J_ex    # amplitude of inhibitory postsynaptic current
@@ -155,13 +158,21 @@ nu_ex  = eta*nu_th
 p_rate = 1000.0*nu_ex*CE
 
 '''
+Parameters for a spatially confined stimulus.
+'''
+
+stim_times = [400., 600.]   # times of stimulus in ms
+J_stim = J_ex * 10000. # weight of stimulus
+mask_radius_stim = 0.5 # mask radius of stimulus in mm
+
+'''
 Definition of topology-specific parameters. Connection routines use fixed
 indegrees = convergent connections with a fixed number of connections.
 '''
 
 extent_length = 4.   # in mm (layer size = extent_length x extent_length)
 mask_radius = 2.     # mask radius in mm
-sigma = 0.3          # Gaussian profile, sigma in mm
+sigma = 1.           # Gaussian profile, sigma in mm
 
 layerdict_EX = {
     'extent' : [extent_length, extent_length],
@@ -179,6 +190,13 @@ layerdict_IN = {
     'edge_wrap' : True,
 }
 
+layer_dict_stim = {
+    'extent' : [extent_length, extent_length],
+    'positions' : [[0., 0.]],
+    'elements' : 'spike_generator_stim',
+    'edge_wrap' : True,
+}
+
 conn_dict_EX = {
     'connection_type': 'convergent',
     'allow_autapses': False,
@@ -186,8 +204,8 @@ conn_dict_EX = {
     'weights' : J_ex,
     'delays' : {
         'linear' : {
-            'c' : 1.5,
-            'a' : 0.,
+            'c' : 1.,
+            'a' : 7.,
             }
         },
     'mask' : {
@@ -211,8 +229,8 @@ conn_dict_IN = {
     'weights' : J_in,
     'delays' : {
         'linear' : {
-            'c' : 1.5,
-            'a' : 0.,
+            'c' : 1.,
+            'a' : 7.,
             }
         },
     'mask' : {
@@ -227,6 +245,18 @@ conn_dict_IN = {
             }
         },
     'number_of_connections' : CI,
+    }
+
+conn_dict_stim = {
+    'connection_type': 'divergent',
+    'allow_autapses': False,
+    'allow_multapses': False,
+    'weights' : J_stim,
+    'delays' : dt,
+    'mask' : {
+        'circular' : {'radius' : mask_radius_stim}
+        },
+    'kernel' : 1.
     }
 
 
@@ -260,7 +290,8 @@ nest.ResetKernel()
 nest.SetKernelStatus({"resolution": dt,
                       "print_time": True,
                       "overwrite_files": True,
-                      'total_num_virtual_procs': 4})
+                      'total_num_virtual_procs': 4,
+                      'grng_seed': 234567})
 
 print("Building network")
 
@@ -297,8 +328,8 @@ inhibitory populations and a poisson generator as noise source.
 The spike detectors are configured for writing to file.
 '''
 
-espikes=nest.Create("spike_detector")
-ispikes=nest.Create("spike_detector")
+espikes = nest.Create("spike_detector")
+ispikes = nest.Create("spike_detector")
 
 nest.SetStatus(espikes,[{
                    "label": os.path.join(spike_output_path, label + "-0"),
@@ -314,7 +345,16 @@ nest.SetStatus(ispikes,[{
                    "to_file": True,
                    }])
 
-noise=nest.Create("poisson_generator")
+noise = nest.Create("poisson_generator")
+
+'''
+Create layer with spike generator for external stimulus.
+'''
+nest.CopyModel('spike_generator', 'spike_generator_stim')
+nest.SetDefaults('spike_generator_stim', {'spike_times': stim_times})
+
+layer_stim = tp.CreateLayer(layer_dict_stim)
+
 
 print("Connecting devices")
 
@@ -371,6 +411,12 @@ tp.ConnectLayers(layer_ex, layer_in, conn_dict_EX)
 print("Inhibitory connections")
 tp.ConnectLayers(layer_in, layer_ex, conn_dict_IN)
 tp.ConnectLayers(layer_in, layer_in, conn_dict_IN)
+
+'''
+Connect spike generator of external stimulus with the excitatory neurons.
+'''
+
+tp.ConnectLayers(layer_stim, layer_ex, conn_dict_stim)
 
 '''
 Storage of the time point after the buildup of the network in a

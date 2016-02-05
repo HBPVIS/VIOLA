@@ -5,7 +5,7 @@
 **VIOLA (VIsualizer Of Layer Activity)**
 is a tool to visualize activity in multiple 2D layers in an interactive and
 efficient way. It gives an insight into spatially resolved time series
-such as, for example, simulation results of neural networks with 2D geometry.
+such as simulation results of neural networks with 2D geometry.
 
 The usage example shows how VIOLA can be used to visualize spike data from a
 NEST simulation (http://nest-simulator.org/) of an excitatory and an
