@@ -40,7 +40,7 @@ Visu.Renderer2D = function(panel,data,name){
 	if(this.data.dataType == "binned"){
 		ih += '<canvas id="miniL" width="'+this.miniLW+'" height="'+this.miniLH+'"></canvas>';
 	}else if(this.data.dataType == "neuron"){
-		ih += '<span>Display density </span><input onmousedown="'+name+'.disableDrag(true)" onmouseup="'+name+'.disableDrag(false)" type="range" min="0" max="100" value="100" step="1" oninput="'+name+'.setDensity(this.value)" style="width:200px;vertical-align:middle;display:inline;margin: 0 10px 0">';
+		ih += '<span>Scale number of neurons displayed</span><br>none <input onmousedown="'+name+'.disableDrag(true)" onmouseup="'+name+'.disableDrag(false)" type="range" min="0" max="100" value="100" step="1" oninput="'+name+'.setDensity(this.value)" style="width:200px;vertical-align:middle;display:inline;margin: 0 10px 0">all';
 	}
 	
 	ih+='</div></td></tr></table>';
@@ -229,12 +229,12 @@ Visu.Renderer2D.prototype = {
 			this.mCtx[c].fillText(-this.data.xSize/4,this.offsetW-this.mCtx[c].measureText(-this.data.xSize/4).width/2+this.miniW/4,this.offsetH+this.miniH+2);
 			this.mCtx[c].fillText(-this.data.xSize/2,this.offsetW-this.mCtx[c].measureText(-this.data.xSize/2).width/2,this.offsetH+this.miniH+2);
 			this.mCtx[c].textBaseline = "bottom";
-			this.mCtx[c].fillText("x(mm)",this.miniCW/2-this.mCtx[c].measureText("x(mm)").width/2,this.miniCH);
+			this.mCtx[c].fillText("x (mm)",this.miniCW/2-this.mCtx[c].measureText("x(mm)").width/2,this.miniCH);
 			this.mCtx[c].save();
 			this.mCtx[c].rotate(-Math.PI/2);
 			this.mCtx[c].translate(-this.miniCW, 0);
 			this.mCtx[c].textBaseline = "top";
-			this.mCtx[c].fillText("y(mm)",this.miniCW/2-this.mCtx[c].measureText("y(mm)").width/2,0);
+			this.mCtx[c].fillText("y (mm)",this.miniCW/2-this.mCtx[c].measureText("y(mm)").width/2,0);
 			this.mCtx[c].restore();
 		}
 		
