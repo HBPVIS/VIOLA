@@ -554,8 +554,6 @@ config_dict.update({
     "ySize": extent_length,
     "dataType": "neuron",
     "posFiles": [label_positions+'-%i.dat' % X for X in [0,1]],
-    "xLFP": 10,
-    "yLFP": 10,
     "timelineLenght": 40,
     "popColors": popColors,
 })

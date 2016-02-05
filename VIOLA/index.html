@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<title>Visualizer</title>
+	<title>VIOLA - visualizer of layer activity</title>
 	<meta charset="utf-8">
 	<script src="js/libs/three.min.js"></script>
 	<script src="jscolor/jscolor.js"></script>
@@ -19,33 +19,31 @@
 		<div>
 		    <input id="importConfigButton" type="file" multiple="false"></input>
 		</div>
+        <ul class="list-nostyle">
+            <li>Data type <select onchange="updateDataType()" id="dataTypeSelect">
+                <option value="binned">Spatially binned data</option>
+                <option value="neuron">Single neurons (raw simulation output)</option>
+            </select></li>
+        </ul>
         <ul id="paramList" class="list-nostyle">
             <li class="spacer"></li>
-            <li class="paramListSubtitle">Simulation</li>
+            <li class="paramListSubtitle">Neural network simulation</li>
             <li>Number of populations <input id="popNumber" type="number" value="2"></li>
-            <li>Name of the populations</li>
+            <li>Population names</li>
             <li><textarea id="popNames" rows="1" cols="100">EX,IN</textarea></li>
-            <li>Name of the corresponding spikes files</li>
+            <li>Filenames of spike data</li>
             <li><textarea id="spikesFiles" rows="1" cols="100"></textarea></li>
             <li>Number of timestamps to store <input style="max-width:60px" id="timestampsNumber" type="number" value="1000"></li>
-            <li>Resolution of simulation (in ms) <input id="resNumber" type="number" value="1"></li>
-            <li>Size of layer (in mm) along x <input id="xSize" type="number" value="4"></li>
-            <li>Size of layer (in mm) along y <input id="ySize" type="number" value="4"></li>
-            <li>Data type <select onchange="updateDataType()" id="dataTypeSelect">
-                <option value="binned">Binned</option>
-                <option value="neuron">Neuron</option>
-            </select></li>
+            <li>Resolution of time series (ms)<input id="resNumber" type="number" value="1"></li>
+            <li>Size of layer along x (mm)<input id="xSize" type="number" value="4"></li>
+            <li>Size of layer along y (mm)<input id="ySize" type="number" value="4"></li>
             <li style="display:none" id="paramPlaceholder"></li>
             <li style="display:none" id="paramPlaceholderEnd"></li>
             <li class="spacer"></li>
-            <li class="paramListSubtitle">LFP</li>
-            <li>Size along x <input id="lfpx" type="number" value="10"></li>
-            <li>Size along y <input id="lfpy" type="number" value="10"></li>
-            <li class="spacer"></li>
             <li class="paramListSubtitle">Display</li>
-            <li>Colors of the populations</li>
+            <li>Population colors</li>
             <li><textarea id="popColors" wrap="hard" rows="2" cols="100">#FF0000,#8000FF</textarea></li>
-            <li>Length of 3D timeline window <input id="zTimeSize" type="number" value="40"></li>
+            <li>Number of timestamps for timeline<input id="zTimeSize" type="number" value="40"></li>
             <li class="spacer"></li>
         </ul>
         <div style="text-align:center"><button onclick="setup()">Setup visualization</button></div>

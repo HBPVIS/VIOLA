@@ -20,6 +20,7 @@ body{
 }
 
 #config-panel li.paramListSubtitle{
+    font-weight:bold;
     text-align:center;
     margin-top:3px;
     margin-bottom:6px;

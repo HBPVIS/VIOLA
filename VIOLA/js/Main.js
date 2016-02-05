@@ -81,18 +81,18 @@ function setup(){
 	var num = document.getElementById('popNumber').value;
 	var popNames = document.getElementById('popNames').value.split(",");
 	var popColors = document.getElementById('popColors').value.split(",");
-    var spikesFiles = document.getElementById('spikesFiles').value.split(",");
+        var spikesFiles = document.getElementById('spikesFiles').value.split(",");
 	var timestamps = document.getElementById('timestampsNumber').value;
 	var resolution = document.getElementById('resNumber').value;
 	var xSize = document.getElementById('xSize').value;
 	var ySize = document.getElementById('ySize').value;
-    var lfpx = document.getElementById('lfpx').value;
-    var lfpy = document.getElementById('lfpy').value;
-    var zTimeSize = document.getElementById('zTimeSize').value;
-    var dataType = document.getElementById('dataTypeSelect').value;
+        var zTimeSize = document.getElementById('zTimeSize').value;
+        var dataType = document.getElementById('dataTypeSelect').value;
     if(dataType == "binned"){
-		var xNumber = document.getElementById('xNumber').value;
-		var yNumber = document.getElementById('yNumber').value;
+	var xNumber = document.getElementById('xNumber').value;
+	var yNumber = document.getElementById('yNumber').value;
+        var lfpx = document.getElementById('lfpx').value;
+        var lfpy = document.getElementById('lfpy').value;
     }else if(dataType == "neuron"){
         var posFiles = document.getElementById('posFiles').value.split(",");
     }
@@ -141,9 +141,10 @@ function generateUploadPanel(){
         if(data.dataType == "neuron"){
             ih += '<tr><td id="pos'+data.layerNames[i]+'"><span>'+data.layerNames[i]+' Positions</span><br/>'
             +'<span class="fileName" id="posn'+data.layerNames[i]+'"></span></td></tr>';
+        }}
+        if(data.dataType == "binned"){
+            ih+='<tr><td id="lfp"><span>LFP</span><br/><span class="fileName" id="lfpn"></span></td></tr>';
         }
-	}
-    ih+='<tr><td id="lfp"><span>LFP</span><br/><span class="fileName" id="lfpn"></span></td></tr>';
 	ih+='</table>';
 	document.getElementById("fileNames").innerHTML=ih;
 }
@@ -240,13 +241,13 @@ function importConfig(text){
     document.getElementById("dataTypeSelect").value = config.dataType;
     updateDataType();
     if(config.dataType == "binned"){
-		document.getElementById('xNumber').value = config.xBins;
-		document.getElementById('yNumber').value = config.yBins;
+        document.getElementById('xNumber').value = config.xBins;
+        document.getElementById('yNumber').value = config.yBins;
+        document.getElementById('lfpx').value = config.xLFP;
+        document.getElementById('lfpy').value = config.yLFP;
     }else if(config.dataType == "neuron"){
         document.getElementById('posFiles').value = config.posFiles;
     }
-    document.getElementById('lfpx').value = config.xLFP;
-    document.getElementById('lfpy').value = config.yLFP;
     document.getElementById('zTimeSize').value = config.timelineLenght;
 	document.getElementById('popColors').value = config.popColors;
 }
@@ -433,6 +434,7 @@ function init(){
 	})(nr);
     
     //LFP file table row
+    if(data.dataType == "binned"){
 	(function(reader){
 		//Hover modification
 		holder = document.getElementById('lfp');
@@ -462,6 +464,7 @@ function init(){
 			return false;
 		};
 	})(nr);
+    }
 
     //Single file drop
 	for(var j=0; j<data.nLayers; j++){
@@ -943,9 +946,22 @@ function updateDataType(){
         newNodes[0].innerHTML = 'Number of bins along x <input id="xNumber" type="number" value="40">';
         newNodes[1] = document.createElement("li");
         newNodes[1].innerHTML = 'Number of bins along y <input id="yNumber" type="number" value="40">';
+        newNodes[2] = document.createElement("li");
+        newNodes[2].className = 'spacer'
+        newNodes[3] = document.createElement("li");
+        newNodes[3].className = 'paramListSubtitle';
+        newNodes[3].innerHTML = 'Analog signal (LFP)';
+        newNodes[4] = document.createElement("li");
+        newNodes[4].innerHTML = 'Number of bins along x<input id="lfpx" type="number" value="10">';
+        newNodes[5] = document.createElement("li");
+        newNodes[5].innerHTML = 'Number of bins along y<input id="lfpy" type="number" value="10">';
+        // newNodes[6] = document.createElement("li");
+        // newNodes[6].innerHTML = "Filename of LFP data";
+        // newNodes[7] = document.createElement("li");
+        // newNodes[7].innerHTML = '<textarea id="lfpFile" rows="1" cols="100"></textarea>';
     }else if(value == "neuron"){
         newNodes[0] = document.createElement("li");
-        newNodes[0].innerHTML = "Name of the neuron position files";
+        newNodes[0].innerHTML = "Names of the neuron position files";
         newNodes[1] = document.createElement("li");
         newNodes[1].innerHTML = '<textarea id="posFiles" rows="1" cols="100"></textarea>';
     }
