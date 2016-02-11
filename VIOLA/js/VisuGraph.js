@@ -107,12 +107,13 @@ Visu.Graph = function(panel,data){
 Visu.Graph.prototype = {
 	
 	setZoom: function (z,index){
-		this.spikesDataSize=Math.round(z*100);
+                // spikesDataSize is the percentage of timestamps
+                this.spikesDataSize=Math.round(z * this.data.timestamps);
 		this.bWidth = Math.ceil(this.svgW/this.spikesDataSize);
 		this.eBWidth = this.svgW/this.spikesDataSize;
-		
-		document.getElementById("zoomValue").innerHTML=Math.round(this.data.timestamps/this.spikesDataSize*10)/10;
-		
+
+                document.getElementById("zoomValue").innerHTML=this.spikesDataSize * this.data.resolution;
+
         this.setOffset(index);
 		this.displayData(index);
         this.drawTimeAxe();
@@ -273,15 +274,18 @@ Visu.Graph.prototype = {
         
         this.ctxT.fillRect(229,0,2,8);
         this.ctxT.fillText("0",230-this.ctxT.measureText("0").width/2,15);
-        
-        var realTicksSpacing = Math.ceil(this.spikesDataSize/160)*10; //Max 16 ticks, with spacing rounded by step of 10
-        //console.log("real ticks spacing : "+realTicksSpacing);
+
+        // tick spacing rounded to
+        var roundSpacing = Math.round(this.spikesDataSize.toPrecision(1) * 0.1);
+        // maximum number of ticks (0 ms excluded, only positive direction)
+        var maxNumTicks = 8;
+        var realTicksSpacing = Math.ceil(this.spikesDataSize/(2*maxNumTicks*roundSpacing)) * roundSpacing
+        // console.log("real ticks spacing : "+realTicksSpacing);
         var ticksSpacing = Math.round(400*realTicksSpacing/this.spikesDataSize);
-        //console.log("ticks spacing : "+ticksSpacing);
+        // console.log("ticks spacing : "+ticksSpacing);
         var numTicks = Math.floor(200/ticksSpacing);
-        //console.log("ticks : "+numTicks);
-        
-        //var numTicks = 10;
+        // console.log("ticks : "+numTicks);
+
         for(var i=1; i<numTicks+1; i++){
             this.ctxT.fillRect(230-ticksSpacing*i,0,2,5);
             this.ctxT.fillText("-"+i*realTicksSpacing*this.data.resolution,230-ticksSpacing*i-this.ctxT.measureText("-"+i*realTicksSpacing*this.data.resolution).width/2,15);
