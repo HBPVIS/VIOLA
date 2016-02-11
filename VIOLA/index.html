@@ -14,14 +14,14 @@
 		<div><h1 style="text-align:center">Setup parameters</h1></div>
         <ul class="list-nostyle">
             <li class="spacer"></li>
+            <li>Select configuration file (optional)</li>
+            <li><input id="importConfigButton" type="file" multiple="false"></input></li>
+        </ul>
+        <ul class="list-nostyle">
             <li>Data type <select onchange="updateDataType()" id="dataTypeSelect">
                 <option value="binned">Spatially binned data</option>
                 <option value="neuron">Single neurons (raw simulation output)</option>
             </select></li>
-        </ul>
-        <ul class="list-nostyle">
-            <li>Select configuration file (optional)</li>
-            <li><input id="importConfigButton" type="file" multiple="false"></input></li>
         </ul>
         <ul id="paramList" class="list-nostyle">
             <li class="spacer"></li>
