@@ -206,7 +206,7 @@ Visu.Renderer2D.prototype = {
     		this.mCtxL.fillRect(this.miniLW-10,0,1,12);
     		this.mCtxL.font = "16px serif";
     		this.mCtxL.textBaseline = "bottom";
-    		this.mCtxL.fillText("Spikes per s",this.miniLW/2-this.mCtxL.measureText("Spikes per s").width/2,40);
+    		this.mCtxL.fillText("Bin-wise spike count (1/s)",this.miniLW/2-this.mCtxL.measureText("Bin-wise spike count (1/s)").width/2,40);
 	},
 	
 	drawMiniLegends: function (){
