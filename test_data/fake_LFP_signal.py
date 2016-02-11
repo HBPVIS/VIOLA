@@ -31,14 +31,15 @@ from nest_preprocessing import *
 
 print('perform spatiotemporal binning of network activity for LFPs')
 
-#input and output path must be provided on the command line, or in
-#ipython as additional args when calling run, e.g.,
-#>>>run nest_preprocessing.py output_raw output_processed
+# input and output path can be provided on the command line:
+#    python fake_LFP_signal.py out_raw out_proc
+# if no argument is given, default values are used
 if len(sys.argv) != 3:
-    raise Exception('please provide input path and output path')
-
-input_path = sys.argv[-2]
-output_path = sys.argv[-1]
+    input_path = 'out_raw'
+    output_path = 'out_proc'
+else:
+    input_path = sys.argv[-2]
+    output_path = sys.argv[-1]
 
 #bin spike data on a grid with a spatial bin size .4 mm and temporal bin size
 #of 1 ms

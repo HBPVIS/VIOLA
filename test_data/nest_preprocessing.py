@@ -699,13 +699,15 @@ class ViolaPreprocessing(object):
 
 
 if __name__ == '__main__':
-    # input and output path must be provided on the command line,
+    # input and output path can be provided on the command line:
     #    python nest_preprocessing.py out_raw out_proc
+    # if no argument is given, default values are used
     if len(sys.argv) != 3:
-        raise Exception('please provide input path and output path')
-
-    input_path = sys.argv[-2]
-    output_path = sys.argv[-1]
+        input_path = 'out_raw'
+        output_path = 'out_proc'
+    else:
+        input_path = sys.argv[-2]
+        output_path = sys.argv[-1]
 
     #tic toc
     tic = time()
