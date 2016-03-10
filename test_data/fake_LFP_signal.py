@@ -81,10 +81,9 @@ t = np.arange(lag)
 tau = 2. + t/10.
 h = np.zeros((r.size, lag*2 + 1))
 for i, a in enumerate(.1/(.1+r**2)):
-    alpha = np.r_[np.zeros(lag+1), t*np.exp(-t/tau[i])]
-    alpha /= alpha.max()
+    alpha = np.r_[np.zeros(lag+1), t*np.exp(-(t-tau[i])/tau[i])/tau[i]]
     h[i, ] = a*alpha
-h /= 10. #scale to more realistic "LFP" magnitudes in (mV)
+h /= 50. #scale to more realistic "LFP" magnitudes in (mV)
 
 
 print('reconstructing LFP from kernels....')
