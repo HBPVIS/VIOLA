@@ -911,7 +911,8 @@ function updateDataScaling(v,factor){
     }else if(factor == 'C'){
         data.updatePowerFactor(v);
     }
-    r2D.drawMiniLegend();
+    if(data.dataType == "binned"){
+        r2D.drawMiniLegend()};
     graph.drawAxes();
 }
 
