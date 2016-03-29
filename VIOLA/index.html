@@ -165,6 +165,12 @@
 				<div id="uploadButtonDiv">
 					<input id="uploadButton" style="width:180px" type="file" multiple="true"></input>
 				</div>
+                                <div id="infobox"><br>
+                                  <a href="#">FILE UPLOAD
+                                    <span>Upload files by dragging and dropping or via a file browser.
+                                    </span>
+                                  </a>
+                                </div>
 			</div>
 		</div>
 
@@ -172,18 +178,31 @@
 			<table id="mainTable">
 				<tr>
 					<td>
-						<div draggable="true" id="miniCanvasPanel" class="displayPanel">
-						</div>
+  					  <div draggable="true" id="miniCanvasPanel" class="displayPanel">
+                                            <div id="infobox"><br>
+                                              <a href="#">2D VIEW
+                                                <span>The spatially resolved instantaneous spike counts of each population are displayed in 2D. For raw data, spikes are shown at the neuron locations.
+                                                </span>
+                                              </a>
+                                            </div>
+                                          </div>
 					</td>
 					<td>
-						<div draggable="true" id="webGLPanel" class="hiddenPanel">
-							<div id="layersParams">
-							</div>
-                            <div id="timelineParams" class="hiddenPanel">
-                            </div>
-							<div id="cameraControls">
-							</div>
-						</div>
+					  <div draggable="true" id="webGLPanel" class="hiddenPanel">
+					    <div id="layersParams">
+					    </div>
+                                            <div id="timelineParams" class="hiddenPanel">
+                                            </div>
+					    <div id="cameraControls">
+					    </div>
+                                            <div id="infobox"><br>
+                                              <a href="#">3D VIEW
+                                                <span>Scene Layers: The spatially resolved instantaneous spike counts of each population are displayed in 3D. Scene Timeline: Spatially resolved spike counts as isosurfaces.<br>
+                                                  Select what is shown and adjust the camera position.
+                                                </span>
+                                              </a>
+                                            </div>
+					  </div>
 					</td>
 					<td>
 						<div draggable="true" id="graphCanvasPanel" class="displayPanel">
@@ -193,6 +212,12 @@
                                                             Zoom in <input id="zoomSlider" type="range" min="0.01" max="1" value="0.1" step="0.01" onmousedown="graph.disableDrag(true)" onmouseup="graph.disableDrag(false)" oninput="graph.setZoom(this.value,index)" style="width:200px;vertical-align:middle;display:inline;margin: 0 10px 0"> Zoom out <br>
 							    Time window of <span id="zoomValue"></span> ms displayed
 							</div>
+                                                        <div id="infobox"><br>
+                                                          <a href="#">SPIKE COUNT
+                                                            <span>The black curve shows the instantaneous spike count averaged over all populations. The relative fraction of each population is displayed as stack plot in the background. Zoom in or out to adjust the visible time window.
+                                                            </span>
+                                                          </a>
+                                                        </div>
 						</div>
 					</td>
 					<td>
@@ -225,6 +250,12 @@
 								<div style="padding-top:10px;text-align:center">
 									<button onclick="corr.computeData();">Compute</button>
 								</div>
+                                                                <div id="infobox"><br>
+                                                                  <a href="#">CORRELATION
+                                                                    <span>Compute cross-correlations.
+                                                                    </span>
+                                                                  </a>
+                                                                </div>
 							</div>
 						</div>
 					</td>
@@ -252,7 +283,6 @@
 				</ul>
 			</div>
 		</div>
-
 	</div>
 	<script src="js/VisuData.js"></script>
 	<script src="js/Visu3D.js"></script>

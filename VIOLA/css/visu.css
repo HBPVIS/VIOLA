@@ -253,3 +253,33 @@ body{
 #webGLPanel canvas{
 	border:1px solid black;
 }
+
+/* Infobox adapted from http://aktuell.de.selfhtml.org/artikel/css/infobox/ */
+#infobox a {
+    color:#ffffff;
+    background:#047900;
+    font:bold 16px verdana, sans-serif;
+    text-decoration:none;
+    display:block;
+    width:150px;
+    padding:5px;
+    border:1px solid black;
+}
+
+#infobox a:hover {
+    color:black;
+    background:#cdeecc;
+}
+
+#infobox a span {display:none;}
+
+#infobox a:hover span {
+    position: absolute; top: 10px; left: 10px; z-index:3;
+    display:block;
+    width:150px;
+    color:black;
+    background:#cdeecc;
+    font:normal 16px verdana, sans-serif;
+    border:1px solid black;
+    padding:10px;
+}
