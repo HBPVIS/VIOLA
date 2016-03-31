@@ -56,7 +56,10 @@ Visu.Renderer2D = function(panel, data, name) {
 
   this.panel = panel;
 
-  panel.innerHTML = ih;
+  // wrap table in a div and place it on top of other elements
+  var ihElem = document.createElement("div");
+  ihElem.innerHTML = ih;
+  panel.insertBefore(ihElem, panel.childNodes[0]);
 
   panel.ondragstart = function(e) {
     e.dataTransfer.setData("elemT", "dragPanel");
