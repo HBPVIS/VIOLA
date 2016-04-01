@@ -110,8 +110,9 @@ body{
 }
 
 #config-panel{
-  margin:auto;
+  float:left;
   margin-top:10px;
+  margin-left:10px;
   padding:4px;
   width:300px;
   position:relative;
@@ -120,6 +121,7 @@ body{
   border-width: 1px;
   border-radius:4px;
   background-color: rgb(240,240,240);
+  overflow:hidden;
 }
 
 #config-panel li{
@@ -129,6 +131,14 @@ body{
 #config-panel textarea{
   resize:vertical;
   width:100%;
+}
+
+#readme{
+  float:left;
+  margin-top:0px;
+  margin-left:20px;
+  width:600px;
+  overflow:hidden;
 }
 
 #paramList input{

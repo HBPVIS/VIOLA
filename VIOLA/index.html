@@ -12,71 +12,186 @@
 </head>
 
 <body>
-  <!-- configuration panel/setup parameters -->
-  <div id="config-panel">
-    <div>
-      <h1 style="text-align:center">Setup parameters</h1>
-    </div>
-    <ul class="list-nostyle">
-      <li class="spacer"></li>
-      <li>Select configuration file (optional)</li>
-      <li>
-        <input id="importConfigButton" type="file" multiple="false">
-      </li>
-    </ul>
-    <ul class="list-nostyle">
-      <li>Data type
-        <select onchange="updateDataType()" id="dataTypeSelect">
-          <option value="binned">Spatially binned data</option>
-          <option value="neuron">Single neurons (raw simulation output)</option>
+  <h1>VIOLA - visualizer of layer activity</h1>
+
+  <!-- view at start -->
+  <div>
+    <!-- configuration panel/setup parameters to the left-->
+    <div id="config-panel">
+      <div>
+        <h1 style="text-align:center">Setup parameters</h1>
+      </div>
+      <ul class="list-nostyle">
+        <li class="spacer"></li>
+        <li>Select configuration file (optional)</li>
+        <li>
+          <input id="importConfigButton" type="file" multiple="false">
+        </li>
+      </ul>
+      <ul class="list-nostyle">
+        <li>Data type
+          <select onchange="updateDataType()" id="dataTypeSelect">
+            <option value="binned">Spatially binned data</option>
+            <option value="neuron">Single neurons (raw simulation output)
+            </option>
         </select>
-      </li>
-    </ul>
-    <ul id="paramList" class="list-nostyle">
-      <li class="spacer"></li>
-      <li class="paramListSubtitle">Neural network simulation</li>
-      <li>Number of populations
-        <input id="popNumber" type="number" value="2">
-      </li>
-      <li>Population names</li>
-      <li>
-        <textarea id="popNames" rows="1" cols="100">EX,IN</textarea>
-      </li>
-      <li>Filenames of spike data</li>
-      <li>
-        <textarea id="spikesFiles" rows="1" cols="100"></textarea>
-      </li>
-      <li>Number of timestamps to store
-        <input style="max-width:60px" id="timestampsNumber" type="number"
-               value="1000">
-      </li>
-      <li>Resolution of time series (ms)
-        <input id="resNumber" type="number" value="1">
-      </li>
-      <li>Size of layer along x (mm)
-        <input id="xSize" type="number" value="4">
-      </li>
-      <li>Size of layer along y (mm)
-        <input id="ySize" type="number" value="4">
-      </li>
-      <li style="display:none" id="paramPlaceholder"></li>
-      <li style="display:none" id="paramPlaceholderEnd"></li>
-      <li class="spacer"></li>
-      <li class="paramListSubtitle">Display</li>
-      <li>Population colors</li>
-      <li>
-        <textarea id="popColors" wrap="hard" rows="2" cols="100">#FF0000,#8000FF
-        </textarea>
-      </li>
-      <li>Number of timestamps for timeline
-        <input id="zTimeSize" type="number" value="40">
-      </li>
-      <li class="spacer"></li>
-    </ul>
-    <div style="text-align:center">
-      <button onclick="setup()">Setup visualization</button>
+        </li>
+      </ul>
+      <ul id="paramList" class="list-nostyle">
+        <li class="spacer"></li>
+        <li class="paramListSubtitle">Neural network simulation</li>
+        <li>Number of populations
+          <input id="popNumber" type="number" value="2">
+        </li>
+        <li>Population names</li>
+        <li>
+          <textarea id="popNames" rows="1" cols="100">EX,IN</textarea>
+        </li>
+        <li>Filenames of spike data</li>
+        <li>
+          <textarea id="spikesFiles" rows="1" cols="100"></textarea>
+        </li>
+        <li>Number of timestamps to store
+          <input style="max-width:60px" id="timestampsNumber" type="number"
+                 value="1000">
+        </li>
+        <li>Resolution of time series (ms)
+          <input id="resNumber" type="number" value="1">
+        </li>
+        <li>Size of layer along x (mm)
+          <input id="xSize" type="number" value="4">
+        </li>
+        <li>Size of layer along y (mm)
+          <input id="ySize" type="number" value="4">
+        </li>
+        <li style="display:none" id="paramPlaceholder"></li>
+        <li style="display:none" id="paramPlaceholderEnd"></li>
+        <li class="spacer"></li>
+        <li class="paramListSubtitle">Display</li>
+        <li>Population colors</li>
+        <li>
+          <textarea id="popColors"
+                    wrap="hard"
+                    rows="2"
+                    cols="100">#FF0000,#8000FF</textarea>
+        </li>
+        <li>Number of timestamps for timeline
+          <input id="zTimeSize" type="number" value="40">
+        </li>
+        <li class="spacer"></li>
+      </ul>
+      <div style="text-align:center">
+        <button onclick="setup()">Setup visualization</button>
+      </div>
+    </div>
+
+    <!-- readme to right -->
+    <div id="readme">
+      <h3>Tool description</h3>
+
+      <p>VIOLA is a tool to visualize activity in multiple 2D layers in an
+        interactive and efficient way. It gives an insight into
+        spatially resolved time series such as simulation results of
+        neural networks with 2D geometry.</p>
+
+      <p>The usage example shows how VIOLA can be used to visualize spike data
+        from a NEST simulation
+        (<a href="http://nest-simulator.org/">http://nest-simulator.org/</a>)
+        of an excitatory and an inhibitory neuron population with
+        distance-dependent connectivity.</p>
+
+      <p>Detailed documentation will be made available in the
+        <a href="https://github.com/HBPVIS/VIOLA/wiki">Wiki</a>.
+        A short usage example is shown below.</p>
+
+      <h3>Usage example</h3>
+
+      <p>The following description includes generation and processing of
+        output data from a simulation of a point-neuron network with 2D
+        geometry  implemented using NEST
+        through Python
+        (<a href="http://www.python.org">http://www.python.org</a>).
+        The scripts can be found in the folder
+        'test_data'. These steps can be skipped, as the simulation
+        output can already be found in
+        'test_data/out_raw' and 'test_data/out_proc'.</p>
+
+      <h4>1. Generate spike data with NEST</h4>
+
+      <pre><code>
+        python topo_brunel_alpha_nest.py out_raw
+      </pre></code>
+
+      <p>creates a directory 'out_raw' which contains the simulation
+      output an a configuration file for VIOLA.</p>
+
+      <h4>2. Visualize raw spike data</h4>
+
+      <ul>
+        <li>start VIOLA (/VIOLA/index.html) in a browser (Chrome
+          preferred), and load the configuration file
+          'config_raw.json'.
+          Alternatively, adjust the parameters manually.</li>
+        <li>upload the following files:
+          <ul>
+            <li>spikes-0.gdf, spikes-1.gdf</li>
+            <li>neuron_positions-0.dat, neuron_positions-1.dat</li>
+          </ul>
+      </ul>
+
+      <h4>3. Preprocess spike data</h4>
+
+       <pre><code>
+         python nest_preprocessing.py out_raw out_proc
+       </pre></code>
+
+       <p>or with OpenMPI:</p>
+
+       <pre><code>
+         mpirun -np 2 python nest_preprocessing.py out_raw out_proc
+       </pre></code>
+
+       <p>applies a spatial binning and changes the time step, output
+         files are stored in 'out_proc'.</p>
+
+       <h4>4. Generate LFP like signal from spike data</h4>
+
+       <pre><code>python fake_LFP_signal.py out_raw out_proc</pre></code>
+
+       <h4>5. Visualize preprocessed data</h4>
+
+       <ul>
+         <li>start VIOLA and load the configuration file 'config_proc.json'</li>
+         <li>upload the following files:<li>
+           <ul>
+             <li>binned_sprates_rs_EX.dat, binned_sprates_rs_IN.dat</li>
+             <li>LFPdata.lfp</li>
+           </ul>
+       </ul>
+
+       <h3>Simulation script dependencies</h3>
+
+       <ul>
+         <li>Python 2.7.x</li>
+         <li>numpy</li>
+         <li>matplotlib</li>
+         <li>scipy</li>
+         <li>h5py</li>
+         <li>mpi4py</li>
+         <li>NEST 2.10.x</li>
+       </ul>
+
+       <h3>VIOLA-compatible browsers</h3>
+       <ul>
+         <li>Chrome</li>
+         <li>Opera</li>
+       </ul>
+
+       <h3>Authors</h3>
+       <p>Corto Carde, Johanna Senk, Espen Hagen, Benjamin Weyers</p>
     </div>
   </div>
+
 
   <!-- panel for picking colors -->
   <div id="colorPickPanelWrapper">
