@@ -30,7 +30,7 @@ var tStart, tEnd;
 var data, r3D, r2D, graph, corr;
 
 //Booleans to know if a display is worth refreshing
-var draw3D = false;
+var draw3D = true;
 var draw2D = true;
 var drawGraph = true;
 var drawCorr = false;
