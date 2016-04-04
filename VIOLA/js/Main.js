@@ -119,7 +119,9 @@ function setup() {
     return;
   };
 
-  document.getElementById('config-panel').className = "hiddenPanel";
+  // hide config panel and readme
+  document.getElementById('start-panel').className = "hiddenPanel";
+
   data = new Visu.Data({
     layers: num,
     names: popNames,

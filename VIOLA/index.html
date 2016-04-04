@@ -12,10 +12,11 @@
 </head>
 
 <body>
-  <h1>VIOLA - visualizer of layer activity</h1>
-
   <!-- view at start -->
-  <div>
+  <div id="start-panel">
+
+    <h1 style="text-indent: 2em">VIOLA - visualizer of layer activity</h1>
+
     <!-- configuration panel/setup parameters to the left-->
     <div id="config-panel">
       <div>
@@ -86,7 +87,7 @@
     </div>
 
     <!-- readme -->
-    <div id="readme">
+    <div id="readme" class="readme">
       <h3>Tool description</h3>
 
       <p>VIOLA is a tool to visualize activity in multiple 2D layers in an
@@ -127,7 +128,7 @@
     </div>
 
     <!-- usage example from readme -->
-    <div id="readme">
+    <div id="readmeUsageExample" class="readme">
       <h3>Usage example</h3>
 
       <p>The following description includes generation and processing of
@@ -194,7 +195,6 @@
        </ul>
     </div>
   </div>
-
 
   <!-- panel for picking colors -->
   <div id="colorPickPanelWrapper">
