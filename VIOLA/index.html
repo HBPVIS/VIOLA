@@ -1,265 +1,648 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-	<title>VIOLA - visualizer of layer activity</title>
-	<meta charset="utf-8">
-	<script src="js/libs/three.min.js"></script>
-	<script src="jscolor/jscolor.js"></script>
+  <title>VIOLA - visualizer of layer activity</title>
+  <meta charset="utf-8">
+  <script src="js/libs/three.min.js"></script>
+  <script src="jscolor/jscolor.js"></script>
 
-	<link rel="stylesheet" type="text/css" href="css/visu.css">
-    <link rel="stylesheet" type="text/css" href="css/menu.css">
+  <link rel="stylesheet" type="text/css" href="css/visu.css">
+  <link rel="stylesheet" type="text/css" href="css/menu.css">
 </head>
+
 <body>
-	<div id="config-panel">
-		<div><h1 style="text-align:center">Setup parameters</h1></div>
-        <ul class="list-nostyle">
-            <li class="spacer"></li>
-            <li>Select configuration file (optional)</li>
-            <li><input id="importConfigButton" type="file" multiple="false"></input></li>
-        </ul>
-        <ul class="list-nostyle">
-            <li>Data type <select onchange="updateDataType()" id="dataTypeSelect">
-                <option value="binned">Spatially binned data</option>
-                <option value="neuron">Single neurons (raw simulation output)</option>
-            </select></li>
-        </ul>
-        <ul id="paramList" class="list-nostyle">
-            <li class="spacer"></li>
-            <li class="paramListSubtitle">Neural network simulation</li>
-            <li>Number of populations <input id="popNumber" type="number" value="2"></li>
-            <li>Population names</li>
-            <li><textarea id="popNames" rows="1" cols="100">EX,IN</textarea></li>
-            <li>Filenames of spike data</li>
-            <li><textarea id="spikesFiles" rows="1" cols="100"></textarea></li>
-            <li>Number of timestamps to store <input style="max-width:60px" id="timestampsNumber" type="number" value="1000"></li>
-            <li>Resolution of time series (ms)<input id="resNumber" type="number" value="1"></li>
-            <li>Size of layer along x (mm)<input id="xSize" type="number" value="4"></li>
-            <li>Size of layer along y (mm)<input id="ySize" type="number" value="4"></li>
-            <li style="display:none" id="paramPlaceholder"></li>
-            <li style="display:none" id="paramPlaceholderEnd"></li>
-            <li class="spacer"></li>
-            <li class="paramListSubtitle">Display</li>
-            <li>Population colors</li>
-            <li><textarea id="popColors" wrap="hard" rows="2" cols="100">#FF0000,#8000FF</textarea></li>
-            <li>Number of timestamps for timeline<input id="zTimeSize" type="number" value="40"></li>
-            <li class="spacer"></li>
-        </ul>
-        <div style="text-align:center"><button onclick="setup()">Setup visualization</button></div>
-	</div>
-    <div id="colorPickPanelWrapper">
-        <div id="colorPickPanel">
-            <div id="colorPickPanelContent">
-                <ul class="list-nostyle">
-                    <li><span>Population <select onchange="updateSelector(this.value)" id="popColorSelect"></select> <input class="color" style="height:20px" id="colorPicker" onchange="updateColor(this.color)"></span></li>
-                    <li><span>Background <input class="color" style="height:20px" id="colorPicker" onchange="r3D.updateBackgroundColor(this.color)"></span></li>
-                    <li><span>Sum background <input class="color" style="height:20px" id="colorPicker" onchange="r3D.updateSumBackgroundColor(this.color)"></span></li>
-                    <li><span>Timelines box <input class="color" style="height:20px" id="colorPicker" onchange="r3D.updateBoxColor(this.color)"></span></li>
-                    <li><button style="margin:5px" onclick="document.getElementById('colorPickPanelWrapper').style.display='none'">Close</button></li>
-                </ul>
-            </div>
-        </div>
+  <!-- view at start -->
+  <div id="start-panel">
+
+    <h1 style="text-indent: 2em">VIOLA - visualizer of layer activity</h1>
+
+    <!-- configuration panel/setup parameters to the left-->
+    <div id="config-panel">
+      <div>
+        <h1 style="text-align:center">Setup parameters</h1>
+      </div>
+      <ul class="list-nostyle">
+        <li class="spacer"></li>
+        <li>Select configuration file (optional)</li>
+        <li>
+          <input id="importConfigButton" type="file" multiple="false">
+        </li>
+      </ul>
+      <ul class="list-nostyle">
+        <li>Data type
+          <select onchange="updateDataType()" id="dataTypeSelect">
+            <option value="binned">Spatially binned data</option>
+            <option value="neuron">Single neurons (raw simulation output)
+            </option>
+        </select>
+        </li>
+      </ul>
+      <ul id="paramList" class="list-nostyle">
+        <li class="spacer"></li>
+        <li class="paramListSubtitle">Neural network simulation</li>
+        <li>Number of populations
+          <input id="popNumber" type="number" value="2">
+        </li>
+        <li>Population names</li>
+        <li>
+          <textarea id="popNames" rows="1" cols="100">EX,IN</textarea>
+        </li>
+        <li>Filenames of spike data</li>
+        <li>
+          <textarea id="spikesFiles" rows="1" cols="100"></textarea>
+        </li>
+        <li>Number of timestamps to store
+          <input style="max-width:60px" id="timestampsNumber" type="number"
+                 value="1000">
+        </li>
+        <li>Resolution of time series (ms)
+          <input id="resNumber" type="number" value="1">
+        </li>
+        <li>Size of layer along x (mm)
+          <input id="xSize" type="number" value="4">
+        </li>
+        <li>Size of layer along y (mm)
+          <input id="ySize" type="number" value="4">
+        </li>
+        <li style="display:none" id="paramPlaceholder"></li>
+        <li style="display:none" id="paramPlaceholderEnd"></li>
+        <li class="spacer"></li>
+        <li class="paramListSubtitle">Display</li>
+        <li>Population colors</li>
+        <li>
+          <textarea id="popColors"
+                    wrap="hard"
+                    rows="2"
+                    cols="100">#FF0000,#8000FF</textarea>
+        </li>
+        <li>Number of timestamps for timeline
+          <input id="zTimeSize" type="number" value="40">
+        </li>
+        <li class="spacer"></li>
+      </ul>
+      <div style="text-align:center">
+        <button onclick="setup()">Setup visualization</button>
+      </div>
     </div>
-	<div id="main-container" class="hiddenPanel">
-        <div id="menuBar">
-            <ul id="menuList">
-                <li class="menuItem">
-                    <span>Display</span>
-                    <ul id="displayUl" style="width:80px">
-    					<li>
-    						<div id="2dmenudiv" onclick="togglePanel(this)">2D Panel</div>
-    					</li>
-    					<li>
-    						<div id="3dmenudiv" onclick="togglePanel(this)">3D Panel</div>
-    					</li>
-    					<li>
-    						<div id="graphmenudiv" onclick="togglePanel(this)">Graph</div>
-    					</li>
-    					<li>
-    						<div id="corrmenudiv" onclick="togglePanel(this)">Correlation</div>
-    					</li>
-    					<li>
-    						<div id="filemenudiv" onclick="collapsePanel()">Files</div>
-    					</li>
-                    </ul>
+
+    <!-- readme -->
+    <div id="readme" class="readme">
+      <h3>Tool description</h3>
+
+      <p>VIOLA is a tool to visualize activity in multiple 2D layers in an
+        interactive and efficient way. It gives an insight into
+        spatially resolved time series such as simulation results of
+        neural networks with 2D geometry.</p>
+
+      <p>The usage example shows how VIOLA can be used to visualize spike data
+        from a NEST simulation
+        (<a href="http://nest-simulator.org/">http://nest-simulator.org/</a>)
+        of an excitatory and an inhibitory neuron population with
+        distance-dependent connectivity.</p>
+
+      <p>Detailed documentation will be made available in the
+        <a href="https://github.com/HBPVIS/VIOLA/wiki">Wiki</a>.
+        A short usage example is shown here.</p>
+
+       <h3>Simulation script dependencies</h3>
+
+       <ul>
+         <li>Python 2.7.x</li>
+         <li>numpy</li>
+         <li>matplotlib</li>
+         <li>scipy</li>
+         <li>h5py</li>
+         <li>mpi4py</li>
+         <li>NEST 2.10.x</li>
+       </ul>
+
+       <h3>VIOLA-compatible browsers</h3>
+       <ul>
+         <li>Chrome</li>
+         <li>Opera</li>
+       </ul>
+
+       <h3>Authors</h3>
+       <p>Corto Carde, Johanna Senk, Espen Hagen, Benjamin Weyers</p>
+    </div>
+
+    <!-- usage example from readme -->
+    <div id="readmeUsageExample" class="readme">
+      <h3>Usage example</h3>
+
+      <p>The following description includes generation and processing of
+        output data from a simulation of a point-neuron network with 2D
+        geometry  implemented using NEST
+        through Python
+        (<a href="http://www.python.org">http://www.python.org</a>).
+        The scripts can be found in the folder
+        'test_data'. These steps can be skipped, as the simulation
+        output can already be found in
+        'test_data/out_raw' and 'test_data/out_proc'.</p>
+
+      <h4>1. Generate spike data with NEST</h4>
+
+      <pre><code>
+        python topo_brunel_alpha_nest.py out_raw
+      </pre></code>
+
+      <p>creates a directory 'out_raw' which contains the simulation
+      output an a configuration file for VIOLA.</p>
+
+      <h4>2. Visualize raw spike data</h4>
+
+      <ul>
+        <li>start VIOLA (/VIOLA/index.html) in a browser (Chrome
+          preferred), and load the configuration file
+          'config_raw.json'.
+          Alternatively, adjust the parameters manually.</li>
+        <li>upload the following files:
+          <ul>
+            <li>spikes-0.gdf, spikes-1.gdf</li>
+            <li>neuron_positions-0.dat, neuron_positions-1.dat</li>
+          </ul>
+      </ul>
+
+      <h4>3. Preprocess spike data</h4>
+
+       <pre><code>
+         python nest_preprocessing.py out_raw out_proc
+       </pre></code>
+
+       <p>or with OpenMPI:</p>
+
+       <pre><code>
+         mpirun -np 2 python nest_preprocessing.py out_raw out_proc
+       </pre></code>
+
+       <p>applies a spatial binning and changes the time step, output
+         files are stored in 'out_proc'.</p>
+
+       <h4>4. Generate LFP like signal from spike data</h4>
+
+       <pre><code>python fake_LFP_signal.py out_raw out_proc</pre></code>
+
+       <h4>5. Visualize preprocessed data</h4>
+
+       <ul>
+         <li>start VIOLA and load the configuration file 'config_proc.json'</li>
+         <li>upload the following files:<li>
+           <ul>
+             <li>binned_sprates_rs_EX.dat, binned_sprates_rs_IN.dat</li>
+             <li>LFPdata.lfp</li>
+           </ul>
+       </ul>
+    </div>
+  </div>
+
+  <!-- panel for picking colors -->
+  <div id="colorPickPanelWrapper">
+    <div id="colorPickPanel">
+      <div id="colorPickPanelContent">
+        <ul class="list-nostyle">
+          <li>
+            <span>Population
+              <select onchange="updateSelector(this.value)" id="popColorSelect">
+              </select>
+              <input class="color" style="height:20px" id="colorPicker"
+                     onchange="updateColor(this.color)">
+            </span>
+          </li>
+          <li>
+            <span>Background
+              <input class="color" style="height:20px" id="colorPicker"
+                     onchange="r3D.updateBackgroundColor(this.color)">
+            </span>
+          </li>
+          <li>
+            <span>Sum background
+              <input class="color" style="height:20px" id="colorPicker"
+                     onchange="r3D.updateSumBackgroundColor(this.color)">
+            </span>
+          </li>
+          <li>
+            <span>Timelines box
+              <input class="color" style="height:20px" id="colorPicker"
+                     onchange="r3D.updateBoxColor(this.color)">
+            </span>
+          </li>
+          <li>
+            <button style="margin:5px"
+                    onclick="document.getElementById('colorPickPanelWrapper').style.display='none'">
+              Close
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- main page -->
+  <div id="main-container" class="hiddenPanel">
+    <!-- menu bar/navigation -->
+    <div id="menuBar">
+      <ul id="menuList">
+        <li class="menuItem">
+          <span>Display</span>
+          <ul id="displayUl" style="width:80px">
+            <li>
+              <div id="2dmenudiv"
+                   onclick="togglePanel(this)">2D Panel</div>
+            </li>
+            <li>
+              <div id="3dmenudiv"
+                   onclick="togglePanel(this)">3D Panel</div>
+            </li>
+            <li>
+              <div id="graphmenudiv"
+                   onclick="togglePanel(this)">Graph</div>
+            </li>
+            <li>
+              <div id="corrmenudiv"
+                   onclick="togglePanel(this)">Correlation</div>
+            </li>
+            <li>
+              <div id="filemenudiv"
+                   onclick="collapsePanel()">Files</div>
+            </li>
+          </ul>
+        </li>
+        <li class="menuItem">
+          <span>Parameters</span>
+          <ul id="parametersUl">
+            <li>
+              <div style="width:280px">
+                <span>Frame interval
+                  <input id="speedInput" type="range" min="20" max="1000"
+                         step="10" value="100"
+                         onchange="updateSpeed(this.value,true)"
+                         oninput="updateSpeed(this.value,false)"
+                         style="width:100px;
+                                vertical-align:middle;
+                                display:inline">
+                  <input type="number"  id="speedValue"
+                         onchange="updateSpeed(this.value,true)" value="100"
+                         style="width:45px;
+                                vertical-align:middle;
+                                display:inline">
+                </span>
+                <span> ms</span>
+              </div>
+            </li>
+            <li>
+              <div style="width:120px"
+                   onclick="document.getElementById('colorPickPanelWrapper').style.display='table'">
+                Colors</div>
+            </li>
+          </ul>
+        </li>
+        <li class="menuItem">
+          <span>3D View</span>
+          <ul id="3DViewSubMenu" style="width:110px">
+            <li class="subMenuItem">
+              <div id="sceneMenuItem">Scene ></div>
+              <ul style="width:104px">
+                <li>
+                  <div>
+                    <input id="radioscenel" type="radio" name="scene"
+                           onchange="r3D.toggleScene(this.value)"
+                           value="layers" checked>
+                    Layers
+                  </div>
                 </li>
-                <li class="menuItem">
-                    <span>Parameters</span>
-                    <ul id="parametersUl">
-    					<li>
-    						<div style="width:280px"><span>Frame interval <input id="speedInput" type="range" min="20" max="1000" step="10" value="100" onchange="updateSpeed(this.value,true)" oninput="updateSpeed(this.value,false)" style="width:100px;vertical-align:middle;display:inline"><input type="number"  id="speedValue" onchange="updateSpeed(this.value,true)" value="100" style="width:45px;vertical-align:middle;display:inline"></span><span> ms</span></div>
-    					</li>
-    					<li>
-    						<div style="width:120px" onclick="document.getElementById('colorPickPanelWrapper').style.display='table'">Colors</div>
-    					</li>
-                    </ul>
+                <li>
+                  <div>
+                    <input id="radioscenet" type="radio" name="scene"
+                           onchange="r3D.toggleScene(this.value)"
+                           value="timeline">
+                    3D Timeline
+                  </div>
                 </li>
-                <li class="menuItem">
-                    <span>3D View</span>
-                    <ul id="3DViewSubMenu" style="width:110px">
-                        <li class="subMenuItem">
-                            <div id="sceneMenuItem">Scene ></div>
-                            <ul style="width:104px">
-                                <li>
-                                    <div><input id="radioscenel" type="radio" name="scene" onchange="r3D.toggleScene(this.value)" value="layers" checked>Layers</div>
-                                </li>
-                                <li>
-                                    <div><input id="radioscenet" type="radio" name="scene" onchange="r3D.toggleScene(this.value)" value="timeline">3D Timeline</div>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="subMenuItem">
-                            <div>Camera ></div>
-                            <ul style="width:115px">
-                                <li>
-                                    <div><input type="radio" name="camera" onchange="r3D.toggleCamera(this.value)" value="persp" checked>Perspective</div>
-                                </li>
-                                <li>
-                                    <div><input type="radio" name="camera" onchange="r3D.toggleCamera(this.value)" value="ortho">Orthographic</div>
-                                </li>
-                                <li class="spacer"></li>
-                                <li>
-                                    <button style="width:100%" id="cameraStyleButton" onclick="r3D.changeCameraControls(this,1)">Free</button>
-                                </li>
-                                <li>
-                                    <button style="width:100%" id="layoutButton" onclick="r3D.changeCameraControls(this,0)">Azerty</button>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
+              </ul>
+            </li>
+            <li class="subMenuItem">
+              <div>Camera ></div>
+              <ul style="width:115px">
+                <li>
+                  <div>
+                    <input type="radio" name="camera"
+                           onchange="r3D.toggleCamera(this.value)" value="persp"
+                           checked>
+                    Perspective
+                  </div>
                 </li>
-                <li class="menuItem">
-                    <span>Data</span>
-                    <ul id="DataSubMenu" style="width:190px">
-                        <li class="subMenuItem">
-                            <div>LFP ></div>
-                            <ul style="width:160px">
-                                <li>
-                                    <div><input type="number"  id="lfpStdDev" onchange="data.updateStdDev(this.value)" value="2" style="width:45px;vertical-align:middle;display:inline"> Std dev factor</div>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="subMenuItem">
-                            <div>Data Scaling f(x)=A*x-B ></div>
-                            <ul style="width:80px">
-                                <li>
-                                    <div>A <input type="number"  id="dataScaleFactor" onchange="updateDataScaling(this.value,'A')" value="1" style="width:45px;vertical-align:middle;display:inline">
-                                </li>
-                                <li>
-                                    <div>B <input type="number"  id="dataOffsetFactor" onchange="updateDataScaling(this.value,'B')" value="0" style="width:45px;vertical-align:middle;display:inline"></div>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
+                <li>
+                  <div>
+                    <input type="radio" name="camera"
+                           onchange="r3D.toggleCamera(this.value)"
+                           value="ortho">
+                    Orthographic
+                  </div>
                 </li>
-            </ul>
+                <li class="spacer"></li>
+                <li>
+                  <button style="width:100%" id="cameraStyleButton"
+                          onclick="r3D.changeCameraControls(this,1)">
+                    Free
+                  </button>
+                </li>
+                <li>
+                  <button style="width:100%" id="layoutButton"
+                          onclick="r3D.changeCameraControls(this,0)">
+                    Azerty
+                  </button>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li class="menuItem">
+          <span>Data</span>
+          <ul id="DataSubMenu" style="width:190px">
+            <li class="subMenuItem">
+              <div>LFP ></div>
+              <ul style="width:160px">
+                <li>
+                  <div>
+                    <input type="number" id="lfpStdDev"
+                           onchange="data.updateStdDev(this.value)" value="2"
+                           style="width:45px;
+                                  vertical-align:middle;
+                                  display:inline">
+                    Std dev factor
+                  </div>
+                </li>
+              </ul>
+            </li>
+            <li class="subMenuItem">
+              <div>Data Scaling f(x)=A*x-B ></div>
+              <ul style="width:80px">
+                <li>
+                  <div>A
+                    <input type="number" id="dataScaleFactor"
+                           onchange="updateDataScaling(this.value,'A')"
+                           value="1"
+                           style="width:45px;
+                                  vertical-align:middle;
+                                  display:inline">
+                  </div>
+                </li>
+                <li>
+                  <div>B
+                    <input type="number" id="dataOffsetFactor"
+                           onchange="updateDataScaling(this.value,'B')"
+                           value="0"
+                           style="width:45px;
+                                  vertical-align:middle;
+                                  display:inline">
+                  </div>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- file upload panel -->
+    <div id="files-container">
+      <button id="closeFilesButton" onclick="collapsePanel()">x</button>
+      <div id="files">
+        <div id="dragInput">
+          <div id="fileNames">
+          </div>
         </div>
-		<div id="files-container">
-            <button id="closeFilesButton" onclick="collapsePanel()">x</button>
-			<div id="files">
-				<div id="dragInput">
-					<div id="fileNames">
-					</div>
-				</div>
-				<div id="multiDragInput">
-				</div>
-				<div id="uploadButtonDiv">
-					<input id="uploadButton" style="width:180px" type="file" multiple="true"></input>
-				</div>
-			</div>
-		</div>
+        <div id="multiDragInput">
+        </div>
+        <div id="uploadButtonDiv">
+          <input id="uploadButton" style="width:180px" type="file"
+                 multiple="true">
+        </div>
+        <div id="infobox">
+          <br>
+          <a href="#">FILE UPLOAD
+            <span>Upload files by dragging and dropping or via a file browser.
+            </span>
+          </a>
+        </div>
+      </div>
+    </div>
 
-		<div id="app">
-			<table id="mainTable">
-				<tr>
-					<td>
-						<div draggable="true" id="miniCanvasPanel" class="displayPanel">
-						</div>
-					</td>
-					<td>
-						<div draggable="true" id="webGLPanel" class="hiddenPanel">
-							<div id="layersParams">
-							</div>
-                            <div id="timelineParams" class="hiddenPanel">
-                            </div>
-							<div id="cameraControls">
-							</div>
-						</div>
-					</td>
-					<td>
-						<div draggable="true" id="graphCanvasPanel" class="displayPanel">
-							<div id="graphSelectPop">
-							</div>
-							<div>
-                                                            Zoom in <input id="zoomSlider" type="range" min="0.01" max="1" value="0.1" step="0.01" onmousedown="graph.disableDrag(true)" onmouseup="graph.disableDrag(false)" oninput="graph.setZoom(this.value,index)" style="width:200px;vertical-align:middle;display:inline;margin: 0 10px 0"> Zoom out <br>
-							    Time window of <span id="zoomValue"></span> ms displayed
-							</div>
-						</div>
-					</td>
-					<td>
-						<div draggable="true" id="correlationCanvasPanel" class="hiddenPanel">
-							<div id="correlationParams">
-								<div>
-									<span>Max </span>
-									<input id="rangeCorrMax" type="range" min="0" max="1" value="1" step="0.01" onmousedown="corr.disableDrag(true)" onmouseup="corr.disableDrag(false)" oninput="corr.setMaxVal(this.value)" style="width:200px;vertical-align:middle;display:inline;margin: 0 10px 0;position:absolute;left:40px">
-									<span id="corrScaleMaxVal" style="position:absolute;left:260px">1</span>
-									</br>
-									</br>
-									<span>Min </span>
-									<input id="rangeCorrMin" type="range" min="0" max="1" value="0" step="0.01" onmousedown="corr.disableDrag(true)" onmouseup="corr.disableDrag(false)" oninput="corr.setMinVal(this.value)" style="width:200px;vertical-align:middle;display:inline;margin: 0 10px 0;position:absolute;left:40px">
-									<span id="corrScaleMinVal" style="position:absolute;left:260px">0</span>
-									</br>
-									</br>
-									<span>Population 1 <select id="popCorr1"></select> Population 2 <select id="popCorr2"></select></span>
-									</br>
-									</br>
-									Max delay (timestep)<input type="number" onchange="updateCorrelationParams(this.value,'delay')" value="20" style="width:45px;vertical-align:middle;display:inline">
-									Max distance (bin)<input type="number" onchange="updateCorrelationParams(this.value,'distance')" value="10" style="width:45px;vertical-align:middle;display:inline">
-									</br>
-									</br>
-									Size of sample (bin) <input type="number" onchange="updateCorrelationParams(this.value,'average')" value="10" style="width:45px;vertical-align:middle;display:inline">
-									</br>
-									</br>
-									Use log scale <input type="checkbox" onchange="updateCorrelationParams(this.checked,'log')">
-									Log scale value A : y=log(1+A*x) <input type="number" onchange="updateCorrelationParams(this.value,'logVal')" value="10" style="width:45px;vertical-align:middle;display:inline">
-								</div>
-								<div style="padding-top:10px;text-align:center">
-									<button onclick="corr.computeData();">Compute</button>
-								</div>
-							</div>
-						</div>
-					</td>
-				</tr>
-			</table>
-		</div>
-		<div id="controls-wrapper">
-			<div id="bar" style="width:900px;margin:auto;padding-top:5px">
-				<canvas id="barCanvas" width="800px" height="10px"></canvas><canvas id="timerCanvas" width="100px" height="10px"></canvas>
-			</div>
-			<div id="buttons" style="width:130px;margin:auto;margin-top:5px;position:relative">
-				<ul style="list-style:none;margin:0;padding:0">
-					<li style="display: inline">
-						<button id="backwardButton" style="width:30px" onclick="backwards()"><span id="backward">&lt;</span></button>
-					</li>
-					<li style="display: inline">
-						<button style="width:60px" id="ppButton" onclick="animateF()"><span id="playpause">Play</span></button>
-					</li>
-					<li style="display: inline">
-						<button id="forwardButton" style="width:30px" onclick="forward()"><span id="forward">&gt;</span></button>
-					</li>
-					<li style="display: inline-block; position: absolute; left: 140px;top:0;width:60px">
-						<button id="resetButton" onclick="resetAll()"><span>Reset</span></button>
-					</li>
-				</ul>
-			</div>
-		</div>
+    <div id="app">
+      <table id="mainTable">
+        <tr>
+          <td>
+            <!-- panel for 2D view -->
+            <div draggable="true" id="miniCanvasPanel" class="displayPanel">
+              <div id="infobox">
+                <br>
+                <a href="#">2D VIEW
+                  <span>The spatially resolved instantaneous spike counts of
+                    each population are displayed in 2D. For raw data, spikes
+                    are shown at the neuron locations.</span>
+                </a>
+              </div>
+            </div>
+          </td>
+          <td>
+            <!-- panel for 3D view (layers and timeline) -->
+            <div draggable="true" id="webGLPanel" class="displayPanel">
+              <div id="layersParams">
+              </div>
+              <div id="timelineParams" class="hiddenPanel">
+              </div>
+              <div id="cameraControls">
+              </div>
+              <div id="infobox">
+                <br>
+                <a href="#">3D VIEW
+                  <span>Scene Layers: The spatially resolved instantaneous spike
+                    counts of each population are displayed in 3D.
+                    Scene Timeline: Spatially resolved spike counts as
+                    isosurfaces.<br>
+                    Select what is shown and adjust the camera position.
+                  </span>
+                </a>
+              </div>
+            </div>
+          </td>
+          <td>
+            <!-- panel for 1D view/graph -->
+            <div draggable="true" id="graphCanvasPanel" class="displayPanel">
+              <div id="graphSelectPop">
+              </div>
+              <div>
+                Zoom in
+                <input id="zoomSlider" type="range" min="0.01" max="1"
+                       value="0.1" step="0.01"
+                       onmousedown="graph.disableDrag(true)"
+                       onmouseup="graph.disableDrag(false)"
+                       oninput="graph.setZoom(this.value,index)"
+                       style="width:200px;
+                              vertical-align:middle;
+                              display:inline;
+                              margin: 0 10px 0">
+                Zoom out<br>
+                Time window of <span id="zoomValue"></span> ms displayed
+              </div>
+              <div id="infobox">
+                <br>
+                <a href="#">1D VIEW
+                  <span>The black curve shows the instantaneous spike count
+                    averaged over all populations. The relative fraction of each
+                    population is displayed as stack plot in the background.
+                    Zoom in or out to adjust the visible time window.</span>
+                </a>
+              </div>
+            </div>
+          </td>
+          <td>
+            <!-- correlation panel -->
+            <div draggable="true" id="correlationCanvasPanel"
+                 class="hiddenPanel">
+              <div id="correlationParams">
+                <div>
+                  <span>Max </span>
+                  <input id="rangeCorrMax" type="range" min="0" max="1"
+                         value="1" step="0.01"
+                         onmousedown="corr.disableDrag(true)"
+                         onmouseup="corr.disableDrag(false)"
+                         oninput="corr.setMaxVal(this.value)"
+                         style="width:200px;
+                                vertical-align:middle;
+                                display:inline;
+                                margin: 0 10px 0;position:absolute;left:40px">
+                  <span id="corrScaleMaxVal"
+                        style="position:absolute;left:260px">1</span>
+                  </br>
+                  </br>
+                  <span>Min </span>
+                  <input id="rangeCorrMin" type="range" min="0" max="1"
+                         value="0" step="0.01"
+                         onmousedown="corr.disableDrag(true)"
+                         onmouseup="corr.disableDrag(false)"
+                         oninput="corr.setMinVal(this.value)"
+                         style="width:200px;
+                                vertical-align:middle;
+                                display:inline;
+                                margin: 0 10px 0;
+                                position:absolute;
+                                left:40px">
+                  <span id="corrScaleMinVal"
+                        style="position:absolute;left:260px">0</span>
+                  </br>
+                  </br>
+                  <span>
+                    Population 1 <select id="popCorr1"></select>
+                    Population 2 <select id="popCorr2"></select>
+                  </span>
+                  </br>
+                  </br>
+                  Max delay (timestep)
+                  <input type="number"
+                         onchange="updateCorrelationParams(this.value,'delay')"
+                         value="20"
+                         style="width:45px;
+                                vertical-align:middle;
+                                display:inline"> Max distance (bin)
+                  <input type="number"
+                         onchange="updateCorrelationParams(this.value,
+                                   'distance')"
+                         value="10"
+                  style="width:45px;vertical-align:middle;display:inline">
+                  </br>
+                  </br>
+                  Size of sample (bin)
+                  <input type="number"
+                         onchange="updateCorrelationParams(this.value,
+                                   'average')"
+                         value="10"
+                         style="width:45px;
+                                vertical-align:middle;
+                                display:inline">
+                  </br>
+                  </br>
+                  Use log scale
+                  <input type="checkbox"
+                         onchange="updateCorrelationParams(this.checked,'log')">
+                  Log scale value A : y=log(1+A*x)
+                  <input type="number"
+                         onchange="updateCorrelationParams(this.value,'logVal')"
+                         value="10"
+                         style="width:45px;
+                                vertical-align:middle;
+                                display:inline">
+                </div>
+                <div style="padding-top:10px;text-align:center">
+                  <button onclick="corr.computeData();">Compute</button>
+                </div>
+                <div id="infobox">
+                  <br>
+                  <a href="#">CORRELATION
+                    <span>Compute cross-correlations.</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <!-- controls for animation (play, pause, reset) -->
+    <div id="controls-wrapper">
+      <div id="bar" style="width:900px;
+                           margin:auto;
+                           padding-top:5px">
+        <canvas id="barCanvas"
+                width="800px"
+                height="10px"></canvas><canvas id="timerCanvas"
+                                               width="100px"
+                                               height="10px"></canvas>
+      </div>
+      <div id="buttons"
+           style="width:130px;
+                  margin:auto;
+                  margin-top:5px;
+                  position:relative">
+        <ul style="list-style:none;
+                   margin:0;
+                   padding:0">
+          <li style="display: inline">
+            <button id="backwardButton" style="width:30px"
+                    onclick="backwards()">
+              <span id="backward">&lt;</span>
+            </button>
+          </li>
+          <li style="display:inline">
+            <button style="width:60px" id="ppButton" onclick="animateF()">
+              <span id="playpause">Play</span>
+            </button>
+          </li>
+          <li style="display:inline">
+            <button id="forwardButton" style="width:30px" onclick="forward()">
+              <span id="forward">&gt;</span>
+            </button>
+          </li>
+          <li style="display:inline-block;
+                     position:absolute;
+                     left:140px;top:0;width:60px">
+            <button id="resetButton" onclick="resetAll()">
+              <span>Reset</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
 
-	</div>
-	<script src="js/VisuData.js"></script>
-	<script src="js/Visu3D.js"></script>
-	<script src="js/Visu2D.js"></script>
-	<script src="js/VisuGraph.js"></script>
-	<script src="js/VisuCorrelation.js"></script>
-    <script src="js/MarchingCubes.js"></script>
-	<script src="js/Main.js"></script>
+  <script src="js/VisuData.js"></script>
+  <script src="js/Visu3D.js"></script>
+  <script src="js/Visu2D.js"></script>
+  <script src="js/VisuGraph.js"></script>
+  <script src="js/VisuCorrelation.js"></script>
+  <script src="js/MarchingCubes.js"></script>
+  <script src="js/Main.js"></script>
 </body>
+
 </html>
