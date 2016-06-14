@@ -279,7 +279,7 @@ Visu.Graph.prototype = {
 
   drawLegend: function() {
     //Draw legend
-    this.ctxL.font = "19px serif";
+    this.ctxL.font = "12px serif";
     this.ctxL.textBaseline = "middle";
     for (var i = 0; i < this.data.nLayers; i++) {
       this.ctxL.fillStyle = this.data.layerColors[i];
