@@ -45,14 +45,14 @@ else:
 #of 1 ms
 preprocess = ViolaPreprocessing(input_path=input_path,
                             output_path=output_path,
-                            X = ['EX', 'IN'],
+                            X = ['EX', 'IN', 'STIM'],
                             t_sim = 1000.,
                             dt = 0.1,
                             extent_length = 4.,
                             GID_filename = 'population_GIDs.dat',
                             position_filename_label = 'neuron_positions-',
                             spike_detector_label = 'spikes-',
-                            TRANSIENT=0.,
+                            TRANSIENT=100.,
                             BINSIZE_TIME=1.,
                             BINSIZE_AREA=0.4,
 )
@@ -89,8 +89,8 @@ h /= 10. #scale to more realistic "LFP" magnitudes in (mV)
 
 print('reconstructing LFP from kernels....')
 
-#combine weight-modification factors
-weight_mod_facts = np.array([[1, -5], [1, -5]]) # 1 and -g of network
+#combine weight-modification factors: 1 and -g of network # TODO: ADD STIMULUS PROPERLY!
+weight_mod_facts = np.array([[1, -4.5, 0.], [1, -4.5, 0], [0., 0., 0.]])
 
 #container for reconstructed LFP per postsynaptic population
 LFP_h = {}

@@ -145,7 +145,7 @@ class ViolaPreprocessing(object):
     def __init__(self,
                  input_path,
                  output_path,
-                 X = ['EX', 'IN'],
+                 X = ['EX', 'IN', 'STIM'],
                  t_sim = 1000.,
                  dt = 0.1,
                  extent_length = 4.,
@@ -225,7 +225,6 @@ class ViolaPreprocessing(object):
         #population names
         self.X = X
 
-
         # time bins for spike trains start at 0,
         # the simulation time is reduced by the startup transient
         self.time_bins = np.arange((self.t_sim - self.TRANSIENT) \
@@ -253,10 +252,6 @@ class ViolaPreprocessing(object):
         # population sizes
         self.N_X = [self.GIDs[i][1] - self.GIDs[i][0] + 1
                           for i in range(len(self.GIDs))]
-
-
-        # discard population name 'TC' if no thalamic neurons are simulated
-        self.X = self.X[:len(self.N_X)]
 
 
         if RANK == 0:
@@ -360,7 +355,6 @@ class ViolaPreprocessing(object):
 
         if RANK == 0:
             print('Writing spikes/voltages with corrected GIDs to file:')
-
         for pop_idx, pop in enumerate(self.X):
             #parallelize on the population level
             if pop_idx % SIZE == RANK:
@@ -714,14 +708,14 @@ if __name__ == '__main__':
 
     preprocess = ViolaPreprocessing( input_path=input_path,
                                 output_path=output_path,
-                                X = ['EX', 'IN'],
+                                X = ['EX', 'IN', 'STIM'],
                                 t_sim = 1000.,
                                 dt = 0.1,
                                 extent_length = 4.,
                                 GID_filename = 'population_GIDs.dat',
                                 position_filename_label = 'neuron_positions-',
                                 spike_detector_label = 'spikes-',
-                                TRANSIENT=0.,
+                                TRANSIENT=100.,
                                 BINSIZE_TIME=1.,
                                 BINSIZE_AREA=0.1,
     )
@@ -863,11 +857,20 @@ if __name__ == '__main__':
                                 for i in range(len(sp))])
 
         popColors = []
-        cmap = plt.get_cmap('rainbow_r', len(preprocess.X))
+        num_colors = len(preprocess.X)
+
+        # if a population is called 'STIM', its color shall be dark grey
+        if 'STIM' in preprocess.X:
+            num_colors -= 1
+
+        cmap = plt.get_cmap('rainbow_r', num_colors)
         for i in range(cmap.N):
             rgb = cmap(i)[:3]
             col_hex = mpc.rgb2hex(rgb)
             popColors.append(col_hex)
+
+        if 'STIM' in preprocess.X:
+            popColors.append('#2E2E2E')
         popColors = ','.join(popColors)
 
         config_dict = {}
@@ -885,7 +888,7 @@ if __name__ == '__main__':
             "yBins": int(preprocess.extent_length / preprocess.BINSIZE_AREA),
             "xLFP": 10,
             "yLFP": 10,
-            "timelineLenght": 40,
+            "timelineLenght": 100,
             "popColors": popColors,
         })
 

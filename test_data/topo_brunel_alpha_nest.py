@@ -92,20 +92,19 @@ Assigning the simulation parameters to variables.
 '''
 
 dt      = 0.1    # the resolution in ms
-simtime = 1000. # Simulation time in ms
+simtime = 1000.  # Simulation time in ms
 
 '''
 Definition of the parameters crucial for asynchronous irregular firing
 of the neurons.
 '''
 
-g       = 5.0  # ratio inhibitory weight/excitatory weight
+g       = 4.5  # ratio inhibitory weight/excitatory weight (before: 5.0)
 eta     = 2.0  # external rate relative to threshold rate
-epsilon = 0.1  # connection probability
+epsilon = 0.8  # connection probability (before: 0.1)
 
 '''
-Definition of the number of neurons in the network and the number of
-neuron recorded from.
+Definition of the number of neurons in the network.
 '''
 
 order     = 2500
@@ -114,7 +113,7 @@ NI        = 1*order # number of inhibitory neurons
 N_neurons = NE+NI   # number of neurons in total
 
 '''
-Definition of connectivity parameters
+Definition of connectivity parameters.
 '''
 
 CE    = int(epsilon*NE) # number of excitatory synapses per neuron
@@ -123,15 +122,15 @@ C_tot = int(CI+CE)      # total number of synapses per neuron
 
 '''
 Initialization of the parameters of the integrate-and-fire neurons and
-the synapses. The parameter of the neuron are stored in a dictionary.
+the synapses. The parameters of the neuron are stored in a dictionary.
 The synaptic currents are normalized such that the amplitude of the
 PSP is J.
 '''
 
-tauSyn = 0.5  # synaptic time constant in ms
-tauMem = 20.0 # time constant of membrane potential in ms
-CMem = 250.0  # capacitance of membrane in in pF
-theta  = 20.0 # membrane threshold potential in mV
+tauSyn = 0.5    # synaptic time constant in ms
+tauMem = 20.0   # time constant of membrane potential in ms
+CMem   = 250.0  # capacitance of membrane in in pF
+theta  = 20.0   # membrane threshold potential in mV
 neuron_params= {"C_m":        CMem,
                 "tau_m":      tauMem,
                 "tau_syn_ex": tauSyn,
@@ -141,7 +140,7 @@ neuron_params= {"C_m":        CMem,
                 "V_reset":    0.0,
                 "V_m":        0.0,
                 "V_th":       theta}
-J      = 0.5        # postsynaptic amplitude in mV (before: 0.1)
+J      = 1.0        # postsynaptic amplitude in mV (before: 0.1)
 J_unit = ComputePSPnorm(tauMem, CMem, tauSyn)
 J_ex   = J / J_unit # amplitude of excitatory postsynaptic current
 J_in   = -g*J_ex    # amplitude of inhibitory postsynaptic current
@@ -161,9 +160,13 @@ p_rate = 1000.0*nu_ex*CE
 Parameters for a spatially confined stimulus.
 '''
 
-stim_times = [400., 600.]   # times of stimulus in ms
-J_stim = J_ex * 10000. # weight of stimulus
-mask_radius_stim = 0.5 # mask radius of stimulus in mm
+stim_radius = 0.5       # radius of a circle in mm for location of stimulus
+mask_radius_stim = 0.3  # mask radius of stimulus in mm around each parrot neuron
+num_stim_conn = 100     # number of connections inside mask_radius_conn
+stim_start = 500.       # start time of stimulus in ms
+stim_stop = 550.        # stop time of stimulus in ms
+stim_rate = 500.        # rate of parrot neurons in Hz during stimulus activation
+stim_weight_scale = 10. # multiplied with J_ex for stimulus
 
 '''
 Definition of topology-specific parameters. Connection routines use fixed
@@ -172,12 +175,12 @@ indegrees = convergent connections with a fixed number of connections.
 
 extent_length = 4.   # in mm (layer size = extent_length x extent_length)
 mask_radius = 2.     # mask radius in mm
-sigma = 1.           # Gaussian profile, sigma in mm
+sigma = 0.3          # Gaussian profile, sigma in mm
 
 layerdict_EX = {
     'extent' : [extent_length, extent_length],
     'positions' : [[(random.rand()-0.5)*extent_length,
-                    (random.rand()-0.5)*extent_length] for x in range(NE)],
+                    (random.rand()-0.5)*extent_length] for n in xrange(NE)],
     'elements' : 'iaf_psc_alpha',
     'edge_wrap' : True, # PBC
 }
@@ -185,17 +188,34 @@ layerdict_EX = {
 layerdict_IN = {
     'extent' : [extent_length, extent_length],
     'positions' : [[(random.rand()-0.5)*extent_length,
-                    (random.rand()-0.5)*extent_length] for x in range(NI)],
+                    (random.rand()-0.5)*extent_length] for n in xrange(NI)],
     'elements' : 'iaf_psc_alpha',
     'edge_wrap' : True,
 }
 
-layer_dict_stim = {
+'''
+The number of parrot neurons for the stimulus is computed by preserving the
+density of excitatory neurons. The parrot neurons are placed inside a circle
+around the center of the sheet.
+'''
+
+N_stim = int(NE * np.pi * stim_radius**2 / extent_length**2)
+
+rnds_angle = [2.*np.pi * random.rand() for n in xrange(N_stim)]
+rnds_radius = [stim_radius * random.rand() for n in xrange(N_stim)]
+stim_positions = [[rr * np.cos(ra),
+                   rr * np.sin(ra)] for ra,rr in zip(rnds_angle, rnds_radius)]
+
+layerdict_stim = {
     'extent' : [extent_length, extent_length],
-    'positions' : [[0., 0.]],
-    'elements' : 'spike_generator_stim',
+    'positions' : stim_positions,
+    'elements' : 'parrot_neuron',
     'edge_wrap' : True,
 }
+
+'''
+Connection dictionaries are defined.
+'''
 
 conn_dict_EX = {
     'connection_type': 'convergent',
@@ -207,9 +227,6 @@ conn_dict_EX = {
             'c' : 1.,
             'a' : 7.,
             }
-        },
-    'mask' : {
-        'circular' : {'radius' : mask_radius}
         },
     'kernel' : {
         'gaussian' : {
@@ -233,9 +250,6 @@ conn_dict_IN = {
             'a' : 7.,
             }
         },
-    'mask' : {
-        'circular' : {'radius' : mask_radius}
-        },
     'kernel' : {
         'gaussian' : {
             'p_center' : 1.,
@@ -249,14 +263,14 @@ conn_dict_IN = {
 
 conn_dict_stim = {
     'connection_type': 'divergent',
-    'allow_autapses': False,
-    'allow_multapses': False,
-    'weights' : J_stim,
+    'weights' : stim_weight_scale * J_ex,
     'delays' : dt,
     'mask' : {
-        'circular' : {'radius' : mask_radius_stim}
+        'circular' : {
+            'radius' : mask_radius_stim
+            }
         },
-    'kernel' : 1.
+    'number_of_connections' : num_stim_conn,
     }
 
 
@@ -290,7 +304,7 @@ nest.ResetKernel()
 nest.SetKernelStatus({"resolution": dt,
                       "print_time": True,
                       "overwrite_files": True,
-                      'total_num_virtual_procs': 4,
+                      'local_num_threads': 4,
                       'grng_seed': 234567})
 
 print("Building network")
@@ -304,7 +318,6 @@ will have the properties specified in the dictionary by default.
 '''
 
 nest.SetDefaults("iaf_psc_alpha", neuron_params)
-nest.SetDefaults("poisson_generator",{"rate": p_rate})
 
 '''
 Creation of the topology layers for excitatory and inhibitory neurons.
@@ -313,14 +326,26 @@ GIDs and neuron positions are written to file.
 
 layer_ex = tp.CreateLayer(layerdict_EX)
 layer_in = tp.CreateLayer(layerdict_IN)
+layer_stim = tp.CreateLayer(layerdict_stim)
 
 tp.DumpLayerNodes(layer_ex, os.path.join(spike_output_path,
                                          label_positions + '-0.dat'))
 tp.DumpLayerNodes(layer_in, os.path.join(spike_output_path,
                                          label_positions + '-1.dat'))
+tp.DumpLayerNodes(layer_stim, os.path.join(spike_output_path,
+                                         label_positions + '-2.dat'))
 
 nodes_ex = nest.GetChildren(layer_ex)[0] # nodes of ex/in neurons
 nodes_in = nest.GetChildren(layer_in)[0]
+nodes_stim = nest.GetChildren(layer_stim)[0]
+
+'''
+Distribute initial membrane voltages.
+'''
+
+for neurons in [nodes_ex, nodes_in]:
+    for neuron in neurons:
+        nest.SetStatus([neuron], {'V_m': theta * np.random.rand()})
 
 '''
 Create spike detectors for recording from the excitatory and the
@@ -330,6 +355,7 @@ The spike detectors are configured for writing to file.
 
 espikes = nest.Create("spike_detector")
 ispikes = nest.Create("spike_detector")
+stim_spikes = nest.Create("spike_detector")
 
 nest.SetStatus(espikes,[{
                    "label": os.path.join(spike_output_path, label + "-0"),
@@ -345,16 +371,22 @@ nest.SetStatus(ispikes,[{
                    "to_file": True,
                    }])
 
-noise = nest.Create("poisson_generator")
+nest.SetStatus(stim_spikes,[{
+                   "label": os.path.join(spike_output_path, label + "-2"),
+                   "withtime": True,
+                   "withgid": True,
+                   "to_file": True,
+                   }])
+
+noise = nest.Create("poisson_generator", 1, {"rate": p_rate})
 
 '''
-Create layer with spike generator for external stimulus.
+External stimulus.
 '''
-nest.CopyModel('spike_generator', 'spike_generator_stim')
-nest.SetDefaults('spike_generator_stim', {'spike_times': stim_times})
 
-layer_stim = tp.CreateLayer(layer_dict_stim)
-
+pg_stim = nest.Create('poisson_generator', 1, {'start': stim_start,
+                                               'stop': stim_stop,
+                                               'rate': stim_rate})
 
 print("Connecting devices")
 
@@ -384,13 +416,15 @@ nest.Connect(noise, nodes_ex, syn_spec="excitatory")
 nest.Connect(noise, nodes_in, syn_spec="excitatory")
 
 '''
-Connecting the excitatory and inhibitory populations to the associated spike
-detectors using excitatory synapses. Here the same shortcut for the
+Connecting the excitatory, inhibitory and stimulus populations to the associated
+spike detectors using excitatory synapses. Here the same shortcut for the
 specification of the synapse as defined above is used.
 '''
 
 nest.Connect(nodes_ex, espikes, syn_spec="excitatory")
 nest.Connect(nodes_in, ispikes, syn_spec="excitatory")
+
+nest.Connect(nodes_stim, stim_spikes, syn_spec="excitatory")
 
 print("Connecting network")
 
@@ -417,6 +451,8 @@ Connect spike generator of external stimulus with the excitatory neurons.
 '''
 
 tp.ConnectLayers(layer_stim, layer_ex, conn_dict_stim)
+
+nest.Connect(pg_stim, nodes_stim, syn_spec={'weight': J_ex})
 
 '''
 Storage of the time point after the buildup of the network in a
@@ -501,7 +537,7 @@ def merge_spike_files():
     '''
     merge spike files from different threads
     '''
-    for i, pop in enumerate(['EX', 'IN']):
+    for i, pop in enumerate(['EX', 'IN', 'STIM']):
         old_filenames = glob.glob(os.path.join(spike_output_path, label + '-' + str(i) + '*.gdf'))
         data = np.empty((0, 2))
         for t in range(len(old_filenames)):
@@ -525,6 +561,7 @@ def write_population_GIDs():
     with open(fname, 'w') as f:
         f.write('%d\t%d\n' % (nodes_ex[0], nodes_ex[-1]))
         f.write('%d\t%d\n' % (nodes_in[0], nodes_in[-1]))
+        f.write('%d\t%d\n' % (nodes_stim[0], nodes_stim[-1]))
     f.close()
 
 merge_spike_files()
@@ -536,25 +573,27 @@ import json
 
 #population colors
 popColors = []
+# EX and IN from colormap, STIM in dark
 cmap = plt.get_cmap('rainbow_r', 2)
 for i in range(cmap.N):
     rgb = cmap(i)[:3]
     col_hex = mpc.rgb2hex(rgb)
     popColors.append(col_hex)
+popColors.append('#2E2E2E')
 popColors = ','.join(popColors)
 
 config_dict = {}
 config_dict.update({
-    "popNum": 2,
-    "popNames": ','.join(['EX','IN']),
-    "spikesFiles": [label+'-%i.gdf' % X for X in [0,1]],
+    "popNum": 3,
+    "popNames": ','.join(['EX','IN', 'STIM']),
+    "spikesFiles": [label+'-%i.gdf' % X for X in [0,1,2]],
     "timestamps": int(simtime / dt),
     "resolution": dt,
     "xSize": extent_length,
     "ySize": extent_length,
     "dataType": "neuron",
-    "posFiles": [label_positions+'-%i.dat' % X for X in [0,1]],
-    "timelineLenght": 40,
+    "posFiles": [label_positions+'-%i.dat' % X for X in [0,1,2]],
+    "timelineLenght": 100,
     "popColors": popColors,
 })
 
@@ -574,19 +613,23 @@ if False:
 #sorted raster plot:
 if True:
     import matplotlib.pyplot as plt
+    import matplotlib.gridspec as gridspec
 
     # stepsize for diluting (1 = all)
-    dilute = int(5) # int
+    dilute = int(10) # int
 
     eevents = nest.GetStatus(espikes, 'events')[0]
     ievents = nest.GetStatus(ispikes, 'events')[0]
 
-    def plot_spikes(nodes=nodes_ex, events=eevents,
+    stim_events = nest.GetStatus(stim_spikes, 'events')[0]
+
+    def plot_spikes(ax, nodes=nodes_ex, events=eevents,
                     layerdict=layerdict_EX,
                     color='r',
-                    marker='.', poplabel='EX'):
+                    marker='.', poplabel='EX',
+                    position_sorted=True):
         '''
-        plot sorted spike raster, flexible for both populations
+        plot unsorted or sorted spike raster, flexible for both populations
         '''
         X = []
         T = []
@@ -596,27 +639,70 @@ if True:
             x, y = layerdict['positions'][i]
             if t.size > 0:
                 T = r_[T, t] # concatenate spike times
-                X = r_[X, zeros_like(t)+x] # sorted by x positions
+
+                if position_sorted:
+                    pos = x # sorted by x positions
+                else:
+                    pos = (random.rand()-0.5)*extent_length # randomized
+
+                X = r_[X, zeros_like(t) + pos]
+
         # dilute
         X = X[np.arange(0, len(X), dilute)]
         T = T[np.arange(0, len(T), dilute)]
-        ax.plot(T, X, marker, color=color, label=poplabel, rasterized=True)
 
-    fig, ax = plt.subplots(1, figsize=(12, 8))
-    plot_spikes(nodes=nodes_ex, events=eevents,
-                layerdict=layerdict_EX,
-                color=cmap(0),
-                marker='.', poplabel='EX')
-    plot_spikes(nodes=nodes_in, events=ievents,
-                layerdict=layerdict_IN,
-                color=cmap(1),
-                marker='.', poplabel='IN')
+        ax.plot(T, X, marker, markersize=3., color=color, label=poplabel,
+                rasterized=True)
+        return
 
-    ax.axis()
-    ax.legend(loc=1)
-    ax.set_title('sorted spike raster')
-    ax.set_xlabel('time (ms)')
-    ax.set_ylabel('x position (mm)')
 
-    fig.savefig(os.path.join(spike_output_path, 'sorted_raster.pdf'))
-    plt.show()
+    def plot_spikes_all_pop(ax, position_sorted=True):
+
+        plot_spikes(ax, nodes=nodes_ex, events=eevents,
+                    layerdict=layerdict_EX,
+                    color=cmap(0),
+                    marker='.', poplabel='EX',
+                    position_sorted=position_sorted)
+        plot_spikes(ax, nodes=nodes_in, events=ievents,
+                    layerdict=layerdict_IN,
+                    color=cmap(1),
+                    marker='.', poplabel='IN',
+                    position_sorted=position_sorted)
+        plot_spikes(ax, nodes=nodes_stim, events=stim_events,
+                    layerdict=layerdict_stim,
+                    color='k',
+                    marker='.', poplabel='STIM',
+                    position_sorted=position_sorted)
+
+        if position_sorted:
+            ax.set_title('sorted spike raster')
+        else:
+            ax.set_title('unsorted spike raster')
+
+        return
+
+
+    def plot_spikes_figure():
+        fig = plt.figure(figsize=(6., 6.))
+        gs = gridspec.GridSpec(2,1)
+        #fig.subplots_adjust(top=0.9, bottom=0.07, left=0.1, right=0.95,
+        #                    hspace=0.05, wspace=0.1)
+
+        ax1 = plt.subplot(gs[0,0]) # unsorted
+        plot_spikes_all_pop(ax1, position_sorted=False)
+        ax1.legend(loc=1, numpoints=1)
+        ax1.set_xticks([])
+        ax1.set_xlabel('')
+        ax1.set_ylabel('x position (mm)')
+
+        ax2 = plt.subplot(gs[1,0]) # sorted
+        plot_spikes_all_pop(ax2, position_sorted=True)
+        ax2.set_xlabel('time (ms)')
+        ax2.set_ylabel('x position (mm)')
+
+        plt.tight_layout()
+
+        fig.savefig(os.path.join(spike_output_path, 'raster.pdf'))
+        plt.show()
+
+    plot_spikes_figure()
