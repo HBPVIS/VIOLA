@@ -52,7 +52,7 @@ preprocess = ViolaPreprocessing(input_path=input_path,
                             GID_filename = 'population_GIDs.dat',
                             position_filename_label = 'neuron_positions-',
                             spike_detector_label = 'spikes-',
-                            TRANSIENT=100.,
+                            TRANSIENT=0.,
                             BINSIZE_TIME=1.,
                             BINSIZE_AREA=0.4,
 )
@@ -88,13 +88,15 @@ h /= 100. #scale to more realistic "LFP" magnitudes in (mV)
 
 print('reconstructing LFP from kernels....')
 
-#combine weight-modification factors: 1 and -g of network # TODO: ADD STIMULUS PROPERLY!
-weight_mod_facts = np.array([[1, -4.5, 0.], [1, -4.5, 0], [0., 0., 0.]])
+#combine weight-modification factors
+weight_mod_facts = np.array([[1, -4.5], [1, -4.5]]) # 1 and -g of network
 
 #container for reconstructed LFP per postsynaptic population
 LFP_h = {}
 #iterate over presynaptic populations, then postsynaptic populations
-for i, X in enumerate(preprocess.X):
+#exclude stimululus here
+pops_iterate = preprocess.X[:-1]
+for i, X in enumerate(pops_iterate):
     print('presynaptic population {}'.format(X))
     #compute spike train histograms for each 0.4x0.4 mm bin centered on each
     #contact using same procedure as in dataset_analysis.py
@@ -108,7 +110,7 @@ for i, X in enumerate(preprocess.X):
                                                            sptrains,
                                                            dtype=np.uint16).toarray()
 
-    for j, Y in enumerate(preprocess.X):
+    for j, Y in enumerate(pops_iterate):
         #Set up container for LFP signal of each postsynaptic population
         #due to presynaptic activity
         if Y not in LFP_h.keys():
