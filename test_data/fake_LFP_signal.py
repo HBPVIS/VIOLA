@@ -78,13 +78,12 @@ r = r[r < np.sqrt(2*(preprocess.extent_length/2.)**2)]
 #for excitatory and inhibitory connections and population output.
 lag = 25
 t = np.arange(lag)
-tau = 2. + t/10.
 h = np.zeros((r.size, lag*2 + 1))
 for i, a in enumerate(.1/(.1+r**2)):
-    alpha = np.r_[np.zeros(lag+1), t*np.exp(-t/tau[i])]
-    alpha /= alpha.max()
+    tau = 2. + 1E-3*r[i]
+    alpha = np.r_[np.zeros(lag+1), t*np.exp(-(t-tau)/tau)/tau]
     h[i, ] = a*alpha
-h /= 10. #scale to more realistic "LFP" magnitudes in (mV)
+h /= 100. #scale to more realistic "LFP" magnitudes in (mV)
 
 
 print('reconstructing LFP from kernels....')
