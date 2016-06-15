@@ -346,7 +346,7 @@ function importConfig(text) {
   } else if (config.dataType == "neuron") {
     document.getElementById('posFiles').value = config.posFiles;
   };
-  document.getElementById('zTimeSize').value = config.timelineLenght;
+  document.getElementById('zTimeSize').value = config.timelineLength;
   document.getElementById('popColors').value = config.popColors;
 };
 

@@ -888,7 +888,7 @@ if __name__ == '__main__':
             "yBins": int(preprocess.extent_length / preprocess.BINSIZE_AREA),
             "xLFP": 10,
             "yLFP": 10,
-            "timelineLenght": 100,
+            "timelineLength": 100,
             "popColors": popColors,
         })
 
