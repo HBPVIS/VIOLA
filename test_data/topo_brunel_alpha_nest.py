@@ -643,7 +643,7 @@ if True:
                 if position_sorted:
                     pos = x # sorted by x positions
                 else:
-                    pos = (random.rand()-0.5)*extent_length # randomized
+                    pos = j
 
                 X = r_[X, zeros_like(t) + pos]
 
@@ -683,22 +683,70 @@ if True:
 
 
     def plot_spikes_figure():
-        fig = plt.figure(figsize=(6., 6.))
-        gs = gridspec.GridSpec(2,1)
+        fig = plt.figure(figsize=(8., 8.))
+        gs = gridspec.GridSpec(5,5)
         #fig.subplots_adjust(top=0.9, bottom=0.07, left=0.1, right=0.95,
         #                    hspace=0.05, wspace=0.1)
 
-        ax1 = plt.subplot(gs[0,0]) # unsorted
-        plot_spikes_all_pop(ax1, position_sorted=False)
-        ax1.legend(loc=1, numpoints=1)
-        ax1.set_xticks([])
-        ax1.set_xlabel('')
-        ax1.set_ylabel('x position (mm)')
+        colors = [cmap(0), cmap(1), (0., 0., 0., 1.)]
+        
+        # unsorted raster
+        ax = plt.subplot(gs[:2,:4]) # unsorted
+        plot_spikes_all_pop(ax, position_sorted=False)
+        ax.axis(ax.axis('tight'))
+        ax.legend(loc=1, numpoints=1)
+        ax.set_xticklabels([])
+        ax.set_xlabel('')
+        ax.set_ylabel('neuron id')
+        ax.text(0, 1, 'A', ha='left', va='bottom', transform=ax.transAxes)
+       
+        
+        # spike count histogram over unit
+        ax = plt.subplot(gs[:2, 4])
+        allnodes = np.array(nodes_ex + nodes_in + nodes_stim)
+        binsize = 20.
+        bins = np.arange(allnodes.min(), allnodes.max()+binsize, binsize)
+        ax.hist([eevents['senders'], ievents['senders'], stim_events['senders']], bins=bins, histtype='step', color=colors, orientation='horizontal', stacked=False, alpha=1)
+        ax.set_yticklabels([])
+        ax.axis(ax.axis('tight'))
+        ax.set_xticks([0, ax.axis()[1]])
+        ax.text(0, 1, 'B', ha='left', va='bottom', transform=ax.transAxes)
+        ax.set_title('spike\ncount')
+        
+        # sorted raster
+        ax = plt.subplot(gs[2:4,:4]) # sorted
+        plot_spikes_all_pop(ax, position_sorted=True)
+        ax.set_ylabel('x position (mm)')
+        ax.set_xticklabels([])
+        ax.text(0, 1, 'C', ha='left', va='bottom', transform=ax.transAxes)
 
-        ax2 = plt.subplot(gs[1,0]) # sorted
-        plot_spikes_all_pop(ax2, position_sorted=True)
-        ax2.set_xlabel('time (ms)')
-        ax2.set_ylabel('x position (mm)')
+
+        # spike count histogram over space
+        ax = plt.subplot(gs[2:4, 4])
+        binsize=0.05
+        bins = np.arange(-2, 2+binsize, binsize)
+        xlists = []
+        for x, gid0, senders in zip([np.array(layerdict_EX['positions'])[:, 0], np.array(layerdict_IN['positions'])[:, 0], np.array(layerdict_stim['positions'])[:, 0]],
+                                        [nodes_ex[0], nodes_in[0], nodes_stim[0]],
+                                        [eevents['senders'], ievents['senders'], stim_events['senders']]):
+            xlists += [[x[n-gid0] for n in senders]]
+        ax.hist(xlists, bins=bins, histtype='step', color=colors, orientation='horizontal', stacked=False, alpha=1)
+        ax.axis(ax.axis('tight'))
+        ax.set_xlabel('count')
+        ax.set_yticklabels([])
+        ax.set_xticks([0, ax.axis()[1]])
+        ax.text(0, 1, 'D', ha='left', va='bottom', transform=ax.transAxes)
+
+
+        # spike count histogram over time
+        ax = plt.subplot(gs[4, :4])
+        bins = np.arange(0, simtime+1, 1)
+        ax.hist([eevents['times'], ievents['times'], stim_events['times']], bins=bins, histtype='step', color=colors, stacked=False, alpha=1)
+        ax.set_xlabel('time (ms)')
+        ax.set_ylabel('count')
+        ax.set_title('spike count')
+        ax.text(0, 1, 'E', ha='left', va='bottom', transform=ax.transAxes)
+
 
         plt.tight_layout()
 
