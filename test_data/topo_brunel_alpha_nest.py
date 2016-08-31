@@ -700,7 +700,9 @@ if True:
         ax = plt.subplot(gs[:2,:4]) # unsorted
         plot_spikes_all_pop(ax, position_sorted=False)
         ax.axis(ax.axis('tight'))
-        ax.legend(loc=1, numpoints=3, markerscale=3)
+        #ax.legend(loc=1, numpoints=1, markerscale=10)
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles[::-1], labels[::-1], loc=1, numpoints=1, markerscale=10)
         ax.set_xticklabels([])
         ax.set_xlabel('')
         ax.set_ylabel('neuron id')
@@ -714,7 +716,8 @@ if True:
         bins = np.arange(allnodes.min(), allnodes.max()+binsize, binsize)
         ax.hist([eevents['senders'], ievents['senders'], stim_events['senders']], bins=bins, histtype='step', color=colors, orientation='horizontal', stacked=False, alpha=1)
         ax.set_yticklabels([])
-        ax.axis(ax.axis('tight'))
+        # ax.axis(ax.axis('tight'))
+        ax.set_ylim(bins[0], bins[-1])
         ax.set_xticks([0, ax.axis()[1]])
         ax.text(-0.25, 1.05, 'B', ha='left', fontsize=16, va='bottom', transform=ax.transAxes)
         ax.set_title('spike\ncount')
@@ -737,7 +740,8 @@ if True:
                                         [eevents['senders'], ievents['senders'], stim_events['senders']]):
             xlists += [[x[n-gid0] for n in senders]]
         ax.hist(xlists, bins=bins, histtype='step', color=colors, orientation='horizontal', stacked=False, alpha=1)
-        ax.axis(ax.axis('tight'))
+        # ax.axis(ax.axis('tight'))
+        ax.set_ylim(bins[0], bins[-1])
         ax.set_xlabel('count')
         ax.set_yticklabels([])
         ax.set_xticks([0, ax.axis()[1]])
