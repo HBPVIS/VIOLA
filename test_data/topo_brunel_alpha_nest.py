@@ -91,8 +91,9 @@ startbuild = time.time()
 Assigning the simulation parameters to variables.
 '''
 
-dt      = 0.1    # the resolution in ms
+dt      = 0.1    # Simulation time resolution in ms
 simtime = 1000.  # Simulation time in ms
+transient = 200. # Simulation transient, discarding spikes at times < transient 
 
 '''
 Definition of the parameters crucial for asynchronous irregular firing
@@ -362,6 +363,7 @@ nest.SetStatus(espikes,[{
                    "withtime": True,
                    "withgid": True,
                    "to_file": True,
+                   "start" : transient, 
                    }])
 
 nest.SetStatus(ispikes,[{
@@ -369,6 +371,7 @@ nest.SetStatus(ispikes,[{
                    "withtime": True,
                    "withgid": True,
                    "to_file": True,
+                   "start" : transient,
                    }])
 
 nest.SetStatus(stim_spikes,[{
@@ -376,6 +379,7 @@ nest.SetStatus(stim_spikes,[{
                    "withtime": True,
                    "withgid": True,
                    "to_file": True,
+                   "start" : transient,
                    }])
 
 noise = nest.Create("poisson_generator", 1, {"rate": p_rate})
@@ -491,8 +495,8 @@ inhibitory neurons by the simulation time. The
 multiplication by 1000.0 converts the unit 1/ms to 1/s=Hz.
 '''
 
-rate_ex   = events_ex/simtime*1000./len(nodes_ex)
-rate_in   = events_in/simtime*1000./len(nodes_in)
+rate_ex   = events_ex/(simtime-transient)*1000./len(nodes_ex)
+rate_in   = events_in/(simtime-transient)*1000./len(nodes_in)
 
 '''
 Reading out the number of connections established using the excitatory
@@ -615,6 +619,8 @@ if True:
     import matplotlib.pyplot as plt
     import matplotlib.gridspec as gridspec
 
+    plt.rcParams['figure.dpi'] = 160.
+
     # stepsize for diluting (1 = all)
     dilute = int(10) # int
 
@@ -651,7 +657,7 @@ if True:
         X = X[np.arange(0, len(X), dilute)]
         T = T[np.arange(0, len(T), dilute)]
 
-        ax.plot(T, X, marker, markersize=3., color=color, label=poplabel,
+        ax.plot(T, X, marker, markersize=1., color=color, label=poplabel,
                 rasterized=True)
         return
 
@@ -684,7 +690,7 @@ if True:
 
     def plot_spikes_figure():
         fig = plt.figure(figsize=(8., 8.))
-        gs = gridspec.GridSpec(5,5)
+        gs = gridspec.GridSpec(6,5)
         #fig.subplots_adjust(top=0.9, bottom=0.07, left=0.1, right=0.95,
         #                    hspace=0.05, wspace=0.1)
 
@@ -694,11 +700,11 @@ if True:
         ax = plt.subplot(gs[:2,:4]) # unsorted
         plot_spikes_all_pop(ax, position_sorted=False)
         ax.axis(ax.axis('tight'))
-        ax.legend(loc=1, numpoints=1)
+        ax.legend(loc=1, numpoints=3, markerscale=3)
         ax.set_xticklabels([])
         ax.set_xlabel('')
         ax.set_ylabel('neuron id')
-        ax.text(0, 1, 'A', ha='left', va='bottom', transform=ax.transAxes)
+        ax.text(-0.05, 1.05, 'A', fontsize=16, ha='left', va='bottom', transform=ax.transAxes)
        
         
         # spike count histogram over unit
@@ -710,7 +716,7 @@ if True:
         ax.set_yticklabels([])
         ax.axis(ax.axis('tight'))
         ax.set_xticks([0, ax.axis()[1]])
-        ax.text(0, 1, 'B', ha='left', va='bottom', transform=ax.transAxes)
+        ax.text(-0.25, 1.05, 'B', ha='left', fontsize=16, va='bottom', transform=ax.transAxes)
         ax.set_title('spike\ncount')
         
         # sorted raster
@@ -718,7 +724,7 @@ if True:
         plot_spikes_all_pop(ax, position_sorted=True)
         ax.set_ylabel('x position (mm)')
         ax.set_xticklabels([])
-        ax.text(0, 1, 'C', ha='left', va='bottom', transform=ax.transAxes)
+        ax.text(-0.05, 1.05, 'C', ha='left', fontsize=16, va='bottom', transform=ax.transAxes)
 
 
         # spike count histogram over space
@@ -735,22 +741,21 @@ if True:
         ax.set_xlabel('count')
         ax.set_yticklabels([])
         ax.set_xticks([0, ax.axis()[1]])
-        ax.text(0, 1, 'D', ha='left', va='bottom', transform=ax.transAxes)
+        ax.text(-0.25, 1.05, 'D', ha='left', va='bottom', fontsize=16, transform=ax.transAxes)
 
 
         # spike count histogram over time
-        ax = plt.subplot(gs[4, :4])
-        bins = np.arange(0, simtime+1, 1)
+        ax = plt.subplot(gs[4:6, :4])
+        bins = np.arange(transient, simtime+1, 1)
         ax.hist([eevents['times'], ievents['times'], stim_events['times']], bins=bins, histtype='step', color=colors, stacked=False, alpha=1)
         ax.set_xlabel('time (ms)')
         ax.set_ylabel('count')
         ax.set_title('spike count')
-        ax.text(0, 1, 'E', ha='left', va='bottom', transform=ax.transAxes)
-
-
+        ax.text(-0.05, 1.05, 'E', ha='left', va='bottom', fontsize=16, transform=ax.transAxes)
+        
         plt.tight_layout()
 
-        fig.savefig(os.path.join(spike_output_path, 'raster.pdf'))
+        fig.savefig(os.path.join(spike_output_path, 'raster.pdf'), dpi=300)
         plt.show()
 
     plot_spikes_figure()
