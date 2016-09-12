@@ -78,46 +78,53 @@ function resetAll() {
 };
 
 function setup() {
-  var num = document.getElementById('popNumber').value;
+  var num = parseInt(document.getElementById('popNumber').value);
   var popNames = document.getElementById('popNames').value.split(",");
   var popColors = document.getElementById('popColors').value.split(",");
   var spikesFiles = document.getElementById('spikesFiles').value.split(",");
   var timestamps = document.getElementById('timestampsNumber').value;
   var resolution = document.getElementById('resNumber').value;
-  var xSize = document.getElementById('xSize').value;
-  var ySize = document.getElementById('ySize').value;
-  var zTimeSize = document.getElementById('zTimeSize').value;
+  var xSize = parseInt(document.getElementById('xSize').value);
+  var ySize = parseInt(document.getElementById('ySize').value);
+  var zTimeSize = parseInt(document.getElementById('zTimeSize').value);
   var dataType = document.getElementById('dataTypeSelect').value;
+
+  // Specific values
+  var xNumber, yNumber, lfpx, lfpy, posFiles;
   if (dataType == "binned") {
-    var xNumber = document.getElementById('xNumber').value;
-    var yNumber = document.getElementById('yNumber').value;
-    var lfpx = document.getElementById('lfpx').value;
-    var lfpy = document.getElementById('lfpy').value;
+    xNumber = document.getElementById('xNumber').value;
+    yNumber = document.getElementById('yNumber').value;
+    lfpx = document.getElementById('lfpx').value;
+    lfpy = document.getElementById('lfpy').value;
   } else if (dataType == "neuron") {
-    var posFiles = document.getElementById('posFiles').value.split(",");
-  };
+    posFiles = document.getElementById('posFiles').value.split(",");
+  }
 
   //Test if config is valid
   if (num <= 0) {
     alert("Number of populations must be superior to 0");
     return;
-  };
-  if (popNames.length != num) {
+  }
+  if (popNames.length !== num) {
     alert("Wrong number of population names");
     return;
-  };
-  if (popColors.length != num) {
+  }
+  if (popColors.length !== num) {
     alert("Wrong number of colors");
     return;
-  };
-  if (spikesFiles.length != num && spikesFiles != "") {
+  }
+  if (spikesFiles.length !== num && spikesFiles !== "") {
     alert("Wrong number of spikes files");
     return;
-  };
-  if (dataType == "neuron" && posFiles.length != num && posFiles != "") {
+  }
+  if (dataType == "neuron" && posFiles.length !== num && posFiles !== "") {
     alert("Wrong number of positions files");
     return;
-  };
+  }
+  if(isNaN(zTimeSize)) {
+      alert("Please specify the number of timestamps for timeline");
+      return;
+  }
 
   // hide config panel and readme
   document.getElementById('start-panel').className = "hiddenPanel";
