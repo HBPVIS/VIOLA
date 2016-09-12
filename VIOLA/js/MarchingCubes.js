@@ -81,13 +81,13 @@ THREE.MarchingCubes = function(xSize,
 
       this.uvArray = new Float32Array(this.maxCount * 2);
 
-    };
+    }
 
     if (this.enableColors) {
 
       this.colorArray = new Float32Array(this.maxCount * 3);
 
-    };
+    }
 
   };
 
@@ -158,7 +158,7 @@ THREE.MarchingCubes = function(xSize,
       this.normal_cache[q3 + 1] = this.field[q - this.yd] - this.field[q + this.yd];
       this.normal_cache[q3 + 2] = this.field[q - this.zd] - this.field[q + this.zd];
 
-    };
+    }
 
   };
 
@@ -214,7 +214,7 @@ THREE.MarchingCubes = function(xSize,
       this.VIntX(q * 3, this.vlist, this.nlist, 0, isol, fx, fy, fz, field0,
                  field1);
 
-    };
+    }
 
     if (bits & 2) {
 
@@ -223,7 +223,7 @@ THREE.MarchingCubes = function(xSize,
       this.VIntY(q1 * 3, this.vlist, this.nlist, 3, isol, fx2, fy, fz, field1,
                  field3);
 
-    };
+    }
 
     if (bits & 4) {
 
@@ -232,7 +232,7 @@ THREE.MarchingCubes = function(xSize,
         this.VIntX(qy * 3, this.vlist, this.nlist, 6, isol, fx, fy2, fz, field2,
                    field3);
 
-    };
+    }
 
     if (bits & 8) {
 
@@ -241,7 +241,7 @@ THREE.MarchingCubes = function(xSize,
       this.VIntY(q * 3, this.vlist, this.nlist, 9, isol, fx, fy, fz, field0,
                  field2);
 
-    };
+    }
 
     // bottom of the cube
 
@@ -252,7 +252,7 @@ THREE.MarchingCubes = function(xSize,
       this.VIntX(qz * 3, this.vlist, this.nlist, 12, isol, fx, fy, fz2, field4,
                  field5);
 
-    };
+    }
 
     if (bits & 32) {
 
@@ -261,7 +261,7 @@ THREE.MarchingCubes = function(xSize,
       this.VIntY(q1z * 3, this.vlist, this.nlist, 15, isol, fx2, fy, fz2,
                  field5, field7);
 
-    };
+    }
 
     if (bits & 64) {
 
@@ -270,7 +270,7 @@ THREE.MarchingCubes = function(xSize,
       this.VIntX(qyz * 3, this.vlist, this.nlist, 18, isol, fx, fy2, fz2,
                  field6, field7);
 
-    };
+    }
 
     if (bits & 128) {
 
@@ -279,7 +279,7 @@ THREE.MarchingCubes = function(xSize,
       this.VIntY(qz * 3, this.vlist, this.nlist, 21, isol, fx, fy, fz2, field4,
                  field6);
 
-    };
+    }
 
     // vertical lines of the cube
 
@@ -290,7 +290,7 @@ THREE.MarchingCubes = function(xSize,
       this.VIntZ(q * 3, this.vlist, this.nlist, 24, isol, fx, fy, fz, field0,
                  field4);
 
-    };
+    }
 
     if (bits & 512) {
 
@@ -299,7 +299,7 @@ THREE.MarchingCubes = function(xSize,
       this.VIntZ(q1 * 3, this.vlist, this.nlist, 27, isol, fx2, fy, fz, field1,
                  field5);
 
-    };
+    }
 
     if (bits & 1024) {
 
@@ -308,7 +308,7 @@ THREE.MarchingCubes = function(xSize,
       this.VIntZ(q1y * 3, this.vlist, this.nlist, 30, isol, fx2, fy2, fz,
                  field3, field7);
 
-    };
+    }
 
     if (bits & 2048) {
 
@@ -317,7 +317,7 @@ THREE.MarchingCubes = function(xSize,
       this.VIntZ(qy * 3, this.vlist, this.nlist, 33, isol, fx, fy2, fz, field2,
                  field6);
 
-    };
+    }
 
     cubeindex <<= 4; // re-purpose cubeindex into an offset into triTable
 
@@ -341,7 +341,7 @@ THREE.MarchingCubes = function(xSize,
       i += 3;
       numtris++;
 
-    };
+    }
 
     return numtris;
 
@@ -439,7 +439,7 @@ THREE.MarchingCubes = function(xSize,
 
       renderCallback(this);
 
-    };
+    }
 
   };
 
@@ -469,13 +469,13 @@ THREE.MarchingCubes = function(xSize,
 
       this.hasUvs = true;
 
-    };
+    }
 
     if (this.enableColors) {
 
       this.hasColors = true;
 
-    };
+    }
 
     renderCallback(this);
 
@@ -495,7 +495,7 @@ THREE.MarchingCubes = function(xSize,
       this.normal_cache[i * 3] = 0.0;
       this.field[i] = 0.0;
 
-    };
+    }
 
   };
 
@@ -528,15 +528,15 @@ THREE.MarchingCubes = function(xSize,
           fx = (x - this.halfsizeX) / this.halfsize; //+ 1
           q = y_offset + x;
 
-          // We can use when (fz == 0) to display current isolines of activity 
+          // We can use when (fz == 0) to display current isolines of activity
 
           this.polygonize(fx, fy, fz, q, this.isolation, renderCallback);
 
-        };
+        }
 
-      };
+      }
 
-    };
+    }
 
     this.end(renderCallback);
 
@@ -566,13 +566,13 @@ THREE.MarchingCubes = function(xSize,
 
     this.reset();
 
-    var i, j;
+    var i, j, sizeSquare = this.sizeX * this.sizeY;
     for (i = 0; i < this.sizeZ; i++) {
       //for (i = 0; i < 40; i++){
-      for (j = 0; j < 1600; j++) {
-        this.field[j + i * 1600] = data[i + this.timeOffset][j];
-      };
-    };
+      for (j = 0; j < sizeSquare; j++) {
+        this.field[j + i * sizeSquare] = data[i + this.timeOffset][j];
+      }
+    }
   };
 
   this.generateGeometry = function() {
@@ -607,7 +607,7 @@ THREE.MarchingCubes = function(xSize,
         geo.vertices.push(vertex);
         normals.push(normal);
 
-      };
+      }
 
       nfaces = object.count / 3;
 
@@ -625,7 +625,7 @@ THREE.MarchingCubes = function(xSize,
 
         geo.faces.push(face);
 
-      };
+      }
 
       start += nfaces;
       object.count = 0;
