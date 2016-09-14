@@ -439,7 +439,7 @@ Visu.Renderer3D = function(panel, data) {
     this.timelineBoundingBox = new THREE.Mesh(new THREE.BufferGeometry()
       .fromGeometry(new THREE.BoxGeometry(1, 1, 1))
       , new THREE.MeshLambertMaterial({ color: 0x808080, transparent: true, opacity: 0.2, depthWrite: false }));
-    this.timelineBoundingBox.scale.set(5 * this.xSize, 5 * this.ySize, 200 * (this.zTimeSize - 2) / (this.data.xNeurons - 2));
+    // The reference size for the timeline is 40, so we put 38 = 40 - 2    this.timelineBoundingBox.scale.set(5 * this.xSize, 5 * this.ySize, 200 * (this.zTimeSize - 2) / 38);
     this.timelineScene.add(this.timelineBoundingBox);
 
     //Scales for timeline
@@ -480,8 +480,8 @@ Visu.Renderer3D = function(panel, data) {
     this.timelineScaleT = new THREE.Line(geo, linematerial, THREE.LinePieces);
     this.timelineScaleT.position.x = 2.5 * this.xSize;
     this.timelineScaleT.position.y = -2.5 * this.ySize;
-    this.timelineScaleT.scale.set(100, 100, 100 * (this.zTimeSize - 2) /
-      (this.data.xNeurons - 2));
+    // The reference size for the timeline is 40, so we put 38 = 40 - 2
+    this.timelineScaleT.scale.set(100, 100, 100 * (this.zTimeSize - 2) / 38);
     this.timelineScene.add(this.timelineScaleT);
 
 
@@ -981,7 +981,8 @@ Visu.Renderer3D.prototype = {
     var val = parseInt(v);
     this.zTimeSize = val;
 
-    var zscale = (this.zTimeSize - 2) / (this.data.xNeurons - 2);
+    // The reference size for the timeline is 40, so we put 38 = 40 - 2
+    var zscale = (this.zTimeSize - 2) / 38;
 
     this.timelineBoundingBox.scale.set(5 * this.xSize,
                                        5 * this.ySize,
