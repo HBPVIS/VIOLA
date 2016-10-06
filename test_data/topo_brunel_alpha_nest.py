@@ -175,21 +175,23 @@ indegrees = convergent connections with a fixed number of connections.
 '''
 
 extent_length = 4.   # in mm (layer size = extent_length x extent_length)
-mask_radius = 2.     # mask radius in mm
 sigma = 0.3          # Gaussian profile, sigma in mm
+
+pos_EX = [[(random.rand()-0.5)*extent_length,
+           (random.rand()-0.5)*extent_length] for n in xrange(NE)]
+pos_IN = [[(random.rand()-0.5)*extent_length,
+           (random.rand()-0.5)*extent_length] for n in xrange(NI)]
 
 layerdict_EX = {
     'extent' : [extent_length, extent_length],
-    'positions' : [[(random.rand()-0.5)*extent_length,
-                    (random.rand()-0.5)*extent_length] for n in xrange(NE)],
+    'positions' : pos_EX,
     'elements' : 'iaf_psc_alpha',
     'edge_wrap' : True, # PBC
 }
 
 layerdict_IN = {
     'extent' : [extent_length, extent_length],
-    'positions' : [[(random.rand()-0.5)*extent_length,
-                    (random.rand()-0.5)*extent_length] for n in xrange(NI)],
+    'positions' : pos_IN,
     'elements' : 'iaf_psc_alpha',
     'edge_wrap' : True,
 }
@@ -204,12 +206,12 @@ N_stim = int(NE * np.pi * stim_radius**2 / extent_length**2)
 
 rnds_angle = [2.*np.pi * random.rand() for n in xrange(N_stim)]
 rnds_radius = [stim_radius * random.rand() for n in xrange(N_stim)]
-stim_positions = [[rr * np.cos(ra),
-                   rr * np.sin(ra)] for ra,rr in zip(rnds_angle, rnds_radius)]
+pos_STIM = [[rr * np.cos(ra),
+             rr * np.sin(ra)] for ra,rr in zip(rnds_angle, rnds_radius)]
 
 layerdict_stim = {
     'extent' : [extent_length, extent_length],
-    'positions' : stim_positions,
+    'positions' : pos_STIM,
     'elements' : 'parrot_neuron',
     'edge_wrap' : True,
 }
@@ -571,13 +573,16 @@ def write_population_GIDs():
 merge_spike_files()
 write_population_GIDs()
 
+
+
+
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpc
 import json
 
 #population colors
 popColors = []
-# EX and IN from colormap, STIM in dark
+# EX and IN from colormap, STIM in dark brownish grey
 cmap = plt.get_cmap('rainbow_r', 2)
 for i in range(cmap.N):
     rgb = cmap(i)[:3]
@@ -609,13 +614,166 @@ with open(os.path.join(spike_output_path, 'config_raw.json'), 'w') as f:
 Plotting.
 '''
 
+# network sketch
+if True:
+    print('Plotting network sketch')
+    from matplotlib.patches import Circle, PathPatch
+    from mpl_toolkits.mplot3d import Axes3D
+    import mpl_toolkits.mplot3d.art3d as art3d
+
+
+    # define parameters for populations
+    pops = {}
+    pops['EX'] = {}
+    pops['IN'] = {}
+    pops['STIM'] = {}
+
+    # neuron numbers
+    pops['EX']['N'] = NE
+    pops['IN']['N'] = NI
+    pops['STIM']['N'] = N_stim
+
+    # positions
+    pops['EX']['pos'] = pos_EX
+    pops['IN']['pos'] = pos_IN
+    pops['STIM']['pos'] = pos_STIM
+
+    # layer
+    pops['EX']['layer'] = layer_ex
+    pops['IN']['layer'] = layer_in
+    pops['STIM']['layer'] = layer_stim
+
+    # population colors
+    pops['EX']['color'] = mpc.hex2color(popColors.split(',')[0])
+    pops['IN']['color'] = mpc.hex2color(popColors.split(',')[1])
+    pops['STIM']['color'] = mpc.hex2color(popColors.split(',')[2])
+
+    # population colors (just darker than population colors
+    pops['EX']['conn_color'] = [0.5*i for i in pops['EX']['color']]
+    pops['IN']['conn_color'] = [0.5*i for i in pops['IN']['color']]
+    pops['STIM']['conn_color'] = [0.5*i for i in pops['STIM']['color']]
+
+    # targets of the neuron type
+    pops['EX']['tgts'] = ['EX', 'IN']
+    pops['IN']['tgts'] = ['EX', 'IN']
+    pops['STIM']['tgts'] = ['EX']
+
+    src_color = 'yellow' # unique color for sources
+    red_conn_dens = 10 # reduce connection density
+
+    def plot_layer(ax, pop, pops_list):
+        # plot neurons at their original location
+        pos = np.array(pops[pop]['pos']).transpose()
+        z0 = pops_list.index(pop)
+        ax.plot(pos[0], pos[1], zs=z0, marker='o', markeredgecolor='none',
+                linestyle='none', markersize=1, color=pops[pop]['color'],
+                alpha=1.)
+        ax.text(-2, -2.8, z0+0.3, pop)
+        return
+
+    def plot_connections(ax, pop, pops_list, red_conn_dens, dots):
+        # nothe that xyloc of connection is set here manually
+
+        # connections from pop to tagt
+        for tgt in pops[pop]['tgts']:
+            z0 = pops_list.index(pop)
+            z1 = z0 + (pops_list.index(tgt) - z0)
+            if pop == tgt or z0 <= z1:
+                if pop == tgt:
+                    xyloc = [0.8, 0.8]
+                else:
+                    xyloc = [-0.8, -0.8]
+                srcid = tp.FindNearestElement(pops[pop]['layer'], xyloc, False)
+                srcloc = tp.GetPosition(srcid)[0]
+                tgtsloc = np.array(tp.GetTargetPositions(srcid, pops[tgt]['layer'])[0])
+                # targets do not get picked in the same order;
+                # they get sorted for reproducibility
+                tgtsloc = tgtsloc[np.argsort(tgtsloc[:,0])]
+                tgtsloc_show = tgtsloc[0:len(tgtsloc):red_conn_dens]
+                for tgtloc in tgtsloc_show:
+                    plt.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
+                             [z0, z1], c=pops[pop]['conn_color'], linewidth=1)
+
+                dots.append([tgtsloc_show, z1, pops[pop]['conn_color']])
+                dots.append([srcloc, z0, src_color])
+
+       #  draw connections from src to pop
+        for src in pops_list:
+            z0 = pops_list.index(src)
+            z1 = z0 + (pops_list.index(pop) - z0)
+            if src != pop and (pop in pops[src]['tgts']) and z0 > z1:
+                if src == 'STIM':
+                    xyloc = [0.,0.]
+                else:
+                    xyloc = [0.8, -0.8]
+                srcid = tp.FindNearestElement(pops[src]['layer'], xyloc, False)
+                srcloc = tp.GetPosition(srcid)[0]
+                tgtsloc = np.array(tp.GetTargetPositions(srcid, pops[pop]['layer'])[0])
+                tgtsloc = tgtsloc[np.argsort(tgtsloc[:,0])]
+                tgtsloc_show = tgtsloc[0:len(tgtsloc):red_conn_dens]
+                for tgtloc in tgtsloc_show:
+                    plt.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
+                             [z0, z1], c=pops[src]['conn_color'], linewidth=1)
+
+                dots.append([tgtsloc_show, z1, pops[src]['conn_color']])
+                dots.append([srcloc, z0, src_color])
+        return dots
+
+    def plot_dots(ax, dots):
+        for i,data in enumerate(dots):
+            if type(data[0][0]) == np.ndarray:
+                xs = zip(*data[0])[0]
+                ys = zip(*data[0])[1]
+            else:
+                xs = [data[0][0]]
+                ys = [data[0][1]]
+            ax.plot(xs, ys, zs=data[1], marker='o', markeredgecolor='none',
+                    markersize=3, c=data[2], linestyle='none')
+        return
+
+    # set up figure
+    fig = plt.figure(figsize=(5,5))
+    ax = fig.gca(projection='3d')
+
+    # build figure from bottom to top
+    pops_list = ['IN', 'EX', 'STIM'] # bottom, center, top
+    dots = []
+    for pop in pops_list: # from bottom to top
+        plot_layer(ax, pop, pops_list)
+        dots = plot_connections(ax, pop, pops_list, red_conn_dens, dots)
+    plot_dots(ax, dots)
+
+    # make plot look nice
+    ax.set_aspect('equal')
+    ax.set_xlabel('\nx (mm)', linespacing=1.8)
+    ax.set_ylabel('\ny (mm)', linespacing=2.0)
+    ax.set_xticks([-2., -1, 0, 1., 2.])
+    ax.set_yticks([-2., -1, 0, 1., 2.])
+    ax.w_zaxis.line.set_lw(0.)
+    ax.set_zticks([])
+
+    ax.grid(False)
+    ax.xaxis.pane.set_edgecolor('white')
+    ax.yaxis.pane.set_edgecolor('white')
+    ax.xaxis.pane.fill = False
+    ax.yaxis.pane.fill = False
+    ax.zaxis.pane.fill = False
+
+    ax.view_init(elev=12, azim=-60)
+    plt.tight_layout()
+
+    fig.savefig(os.path.join(spike_output_path, 'network_sketch.pdf'), dpi=300)
+
+
 # rasters and histograms from nest
 if False:
+    print('Plotting raster plot using NEST')
     eraster = nest.raster_plot.from_device(espikes, hist=True)
     iraster = nest.raster_plot.from_device(ispikes, hist=True)
 
 #sorted raster plot:
 if True:
+    print("Plotting sorted raster plot")
     import matplotlib.pyplot as plt
     import matplotlib.gridspec as gridspec
 
