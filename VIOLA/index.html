@@ -474,8 +474,9 @@
               </div>
               <div>
                 Zoom in
-                <input id="zoomSlider" type="range" min="0.01" max="1"
-                       value="0.1" step="0.01"
+                <!-- step must be even -->
+                <input id="zoomSlider" type="range" min="0.02" max="1"
+                       value="0.1" step="0.02"
                        onmousedown="graph.disableDrag(true)"
                        onmouseup="graph.disableDrag(false)"
                        oninput="graph.setZoom(this.value,index)"
