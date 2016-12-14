@@ -97,12 +97,12 @@ Visu.Graph = function(panel, data) {
   for (var i = 0; i < this.data.timestamps; i++)
     this.total[i] = 0;
 
-  this.setZoom(document.getElementById("zoomSlider").value);
-
   this.totalRatio = 0;
 
   this.bWidth = Math.ceil(this.svgW / this.spikesDataSize);
   this.eBWidth = Math.ceil(this.svgW / this.spikesDataSize);
+
+  this.setZoom(document.getElementById("zoomSlider").value);
 };
 
 Visu.Graph.prototype = {
