@@ -177,10 +177,8 @@ indegrees = convergent connections with a fixed number of connections.
 extent_length = 4.   # in mm (layer size = extent_length x extent_length)
 sigma = 0.3          # Gaussian profile, sigma in mm
 
-pos_EX = [[(random.rand()-0.5)*extent_length,
-           (random.rand()-0.5)*extent_length] for n in xrange(NE)]
-pos_IN = [[(random.rand()-0.5)*extent_length,
-           (random.rand()-0.5)*extent_length] for n in xrange(NI)]
+pos_EX = list(((random.rand(2*NE) - 0.5) * extent_length).reshape(-1, 2))
+pos_IN = list(((random.rand(2*NI) - 0.5) * extent_length).reshape(-1, 2))
 
 layerdict_EX = {
     'extent' : [extent_length, extent_length],
@@ -204,10 +202,13 @@ around the center of the sheet.
 
 N_stim = int(NE * np.pi * stim_radius**2 / extent_length**2)
 
-rnds_angle = [2.*np.pi * random.rand() for n in xrange(N_stim)]
-rnds_radius = [stim_radius * random.rand() for n in xrange(N_stim)]
-pos_STIM = [[rr * np.cos(ra),
-             rr * np.sin(ra)] for ra,rr in zip(rnds_angle, rnds_radius)]
+n_stim = 0
+pos_STIM = []
+while n_stim < N_stim:
+    ppos = (random.rand(2) - 0.5) * 2 * stim_radius
+    if ppos[0]**2 + ppos[1]**2 <= stim_radius**2:
+        pos_STIM.append(ppos)
+        n_stim += 1
 
 layerdict_stim = {
     'extent' : [extent_length, extent_length],
@@ -327,8 +328,8 @@ Creation of the topology layers for excitatory and inhibitory neurons.
 GIDs and neuron positions are written to file.
 '''
 
-layer_ex = tp.CreateLayer(layerdict_EX)
 layer_in = tp.CreateLayer(layerdict_IN)
+layer_ex = tp.CreateLayer(layerdict_EX)
 layer_stim = tp.CreateLayer(layerdict_stim)
 
 tp.DumpLayerNodes(layer_ex, os.path.join(spike_output_path,
@@ -543,6 +544,7 @@ def merge_spike_files():
     '''
     merge spike files from different threads
     '''
+    print("Merging spike files")
     for i, pop in enumerate(['EX', 'IN', 'STIM']):
         old_filenames = glob.glob(os.path.join(spike_output_path, label + '-' + str(i) + '*.gdf'))
         data = np.empty((0, 2))
@@ -563,6 +565,7 @@ def write_population_GIDs():
     '''
     write first and last neuron GID of both poulations to file
     '''
+    print("Writing population GIDs")
     fname = os.path.join(spike_output_path, 'population_GIDs.dat')
     with open(fname, 'w') as f:
         f.write('%d\t%d\n' % (nodes_ex[0], nodes_ex[-1]))
@@ -615,9 +618,9 @@ Plotting.
 '''
 
 # network sketch
-if True:
+if False:
     print('Plotting network sketch')
-    from matplotlib.patches import Circle, PathPatch
+    from matplotlib.patches import Patch
     from mpl_toolkits.mplot3d import Axes3D
     import mpl_toolkits.mplot3d.art3d as art3d
 
@@ -644,22 +647,23 @@ if True:
     pops['STIM']['layer'] = layer_stim
 
     # population colors
-    pops['EX']['color'] = mpc.hex2color(popColors.split(',')[0])
-    pops['IN']['color'] = mpc.hex2color(popColors.split(',')[1])
+    pops['EX']['color'] = cmap(0)
+    pops['IN']['color'] = cmap(1)
     pops['STIM']['color'] = mpc.hex2color(popColors.split(',')[2])
 
     # population colors (just darker than population colors
     pops['EX']['conn_color'] = [0.5*i for i in pops['EX']['color']]
     pops['IN']['conn_color'] = [0.5*i for i in pops['IN']['color']]
-    pops['STIM']['conn_color'] = [0.5*i for i in pops['STIM']['color']]
+    pops['STIM']['conn_color'] = [0.5*i for i in pops['EX']['color']] # same as EX
 
     # targets of the neuron type
     pops['EX']['tgts'] = ['EX', 'IN']
     pops['IN']['tgts'] = ['EX', 'IN']
     pops['STIM']['tgts'] = ['EX']
 
-    src_color = 'yellow' # unique color for sources
-    red_conn_dens = 10 # reduce connection density
+    src_color = 'grey' # unique color for sources
+    tgt_color = 'white' # unique color for targets
+    red_conn_dens = 100 # reduce connection density
 
     def plot_layer(ax, pop, pops_list):
         # plot neurons at their original location
@@ -672,7 +676,7 @@ if True:
         return
 
     def plot_connections(ax, pop, pops_list, red_conn_dens, dots):
-        # nothe that xyloc of connection is set here manually
+        # note that xyloc of connection is set here manually
 
         # connections from pop to tagt
         for tgt in pops[pop]['tgts']:
@@ -694,8 +698,8 @@ if True:
                     plt.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
                              [z0, z1], c=pops[pop]['conn_color'], linewidth=1)
 
-                dots.append([tgtsloc_show, z1, pops[pop]['conn_color']])
-                dots.append([srcloc, z0, src_color])
+                dots.append([tgtsloc_show, z1, tgt_color, pops[tgt]['color']])
+                dots.append([srcloc, z0, src_color, pops[pop]['color']])
 
        #  draw connections from src to pop
         for src in pops_list:
@@ -715,8 +719,8 @@ if True:
                     plt.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
                              [z0, z1], c=pops[src]['conn_color'], linewidth=1)
 
-                dots.append([tgtsloc_show, z1, pops[src]['conn_color']])
-                dots.append([srcloc, z0, src_color])
+                dots.append([tgtsloc_show, z1, tgt_color, pops[pop]['color']])
+                dots.append([srcloc, z0, src_color, pops[src]['color']])
         return dots
 
     def plot_dots(ax, dots):
@@ -727,12 +731,13 @@ if True:
             else:
                 xs = [data[0][0]]
                 ys = [data[0][1]]
-            ax.plot(xs, ys, zs=data[1], marker='o', markeredgecolor='none',
+            ax.plot(xs, ys, zs=data[1], marker='o', markeredgecolor=data[3],
                     markersize=3, c=data[2], linestyle='none')
         return
 
     # set up figure
-    fig = plt.figure(figsize=(5,5))
+    fig = plt.figure(figsize=(6.5,5))
+    fig.subplots_adjust(top=1., bottom=0.08, left=0., right=0.65)
     ax = fig.gca(projection='3d')
 
     # build figure from bottom to top
@@ -745,10 +750,12 @@ if True:
 
     # make plot look nice
     ax.set_aspect('equal')
-    ax.set_xlabel('\nx (mm)', linespacing=1.8)
-    ax.set_ylabel('\ny (mm)', linespacing=2.0)
+    ax.set_xlabel('x (mm)', labelpad=-1)
+    ax.set_ylabel('y (mm)', labelpad=-1)
     ax.set_xticks([-2., -1, 0, 1., 2.])
     ax.set_yticks([-2., -1, 0, 1., 2.])
+    ax.xaxis.set_tick_params(pad=-1)
+    ax.yaxis.set_tick_params(pad=-1)
     ax.w_zaxis.line.set_lw(0.)
     ax.set_zticks([])
 
@@ -759,8 +766,28 @@ if True:
     ax.yaxis.pane.fill = False
     ax.zaxis.pane.fill = False
 
+    # legend
+    handles = \
+        [Patch(color=pops['STIM']['color']),
+         Patch(color=pops['EX']['color']),
+         Patch(color=pops['IN']['color']),
+         plt.Line2D((0,1),(0,0), color=src_color, marker='o',
+                    markeredgecolor=pops['EX']['color'], linestyle=''),
+         plt.Line2D((0,1),(0,0), color=tgt_color, marker='o',
+                    markeredgecolor=pops['EX']['color'], linestyle=''),
+         plt.Line2D((0,1),(0,0), color=pops['EX']['conn_color']),
+         plt.Line2D((0,1),(0,0), color=pops['IN']['conn_color'])]
+    labels = \
+        ['STIM',
+         'EX',
+         'IN',
+         'source in EX',
+         'target in EX',
+         'exc. connection',
+         'inh. connection']
+    ax.legend(handles, labels, numpoints=1, loc=2, bbox_to_anchor=(0.95, 0.8))
+
     ax.view_init(elev=12, azim=-60)
-    plt.tight_layout()
 
     fig.savefig(os.path.join(spike_output_path, 'network_sketch.pdf'), dpi=300)
 
@@ -771,7 +798,7 @@ if False:
     eraster = nest.raster_plot.from_device(espikes, hist=True)
     iraster = nest.raster_plot.from_device(ispikes, hist=True)
 
-#sorted raster plot:
+# sorted raster plot:
 if True:
     print("Plotting sorted raster plot")
     import matplotlib.pyplot as plt
@@ -821,28 +848,40 @@ if True:
 
 
     def plot_spikes_all_pop(ax, position_sorted=True):
-
-        plot_spikes(ax, nodes=nodes_ex, events=eevents,
-                    layerdict=layerdict_EX,
-                    color=cmap(0),
-                    marker='.', poplabel='EX',
-                    position_sorted=position_sorted)
-        plot_spikes(ax, nodes=nodes_in, events=ievents,
-                    layerdict=layerdict_IN,
-                    color=cmap(1),
-                    marker='.', poplabel='IN',
-                    position_sorted=position_sorted)
-        plot_spikes(ax, nodes=nodes_stim, events=stim_events,
-                    layerdict=layerdict_stim,
-                    color='k',
-                    marker='.', poplabel='STIM',
-                    position_sorted=position_sorted)
-
-        if position_sorted:
+        if position_sorted: # stimulus on top
+            plot_spikes(ax, nodes=nodes_ex, events=eevents,
+                        layerdict=layerdict_EX,
+                        color=cmap(0),
+                        marker='.', poplabel='EX',
+                        position_sorted=position_sorted)
+            plot_spikes(ax, nodes=nodes_in, events=ievents,
+                        layerdict=layerdict_IN,
+                        color=cmap(1),
+                        marker='.', poplabel='IN',
+                        position_sorted=position_sorted)
+            plot_spikes(ax, nodes=nodes_stim, events=stim_events,
+                        layerdict=layerdict_stim,
+                        color='k',
+                        marker='.', poplabel='STIM',
+                        position_sorted=position_sorted)
             ax.set_title('sorted spike raster')
         else:
+            plot_spikes(ax, nodes=nodes_stim, events=stim_events,
+                        layerdict=layerdict_stim,
+                        color='k',
+                        marker='.', poplabel='STIM',
+                        position_sorted=position_sorted)
+            plot_spikes(ax, nodes=nodes_ex, events=eevents,
+                        layerdict=layerdict_EX,
+                        color=cmap(0),
+                        marker='.', poplabel='EX',
+                        position_sorted=position_sorted)
+            plot_spikes(ax, nodes=nodes_in, events=ievents,
+                        layerdict=layerdict_IN,
+                        color=cmap(1),
+                        marker='.', poplabel='IN',
+                        position_sorted=position_sorted)
             ax.set_title('unsorted spike raster')
-
         return
 
 
@@ -852,19 +891,20 @@ if True:
         #fig.subplots_adjust(top=0.9, bottom=0.07, left=0.1, right=0.95,
         #                    hspace=0.05, wspace=0.1)
 
-        colors = [cmap(0), cmap(1), (0., 0., 0., 1.)]
+        colors = [cmap(0), cmap(1), mpc.hex2color(popColors.split(',')[2])]
         
         # unsorted raster
         ax = plt.subplot(gs[:2,:4]) # unsorted
         plot_spikes_all_pop(ax, position_sorted=False)
         ax.axis(ax.axis('tight'))
-        #ax.legend(loc=1, numpoints=1, markerscale=10)
-        handles, labels = ax.get_legend_handles_labels()
-        ax.legend(handles[::-1], labels[::-1], loc=1, numpoints=1, markerscale=10)
         ax.set_xticklabels([])
         ax.set_xlabel('')
         ax.set_ylabel('neuron id')
         ax.text(-0.05, 1.05, 'A', fontsize=16, ha='left', va='bottom', transform=ax.transAxes)
+
+        # take handles and labels from unsorted raster, but place legend to
+        # bottom right corner
+        handles, labels = ax.get_legend_handles_labels()
        
         
         # spike count histogram over unit
@@ -909,11 +949,19 @@ if True:
         # spike count histogram over time
         ax = plt.subplot(gs[4:6, :4])
         bins = np.arange(transient, simtime+1, 1)
-        ax.hist([eevents['times'], ievents['times'], stim_events['times']], bins=bins, histtype='step', color=colors, stacked=False, alpha=1)
+        bottom = 0
+        for i,ev in enumerate([eevents['times'], ievents['times'], stim_events['times']]):
+            ax.hist(ev, bins=bins, histtype='step', color=colors[i], stacked=False, alpha=1, bottom=bottom)
+            h,b = np.histogram(ev, bins)
+            bottom += np.max(h)
+
         ax.set_xlabel('time (ms)')
         ax.set_ylabel('count')
         ax.set_title('spike count')
         ax.text(-0.05, 1.05, 'E', ha='left', va='bottom', fontsize=16, transform=ax.transAxes)
+
+        ax.legend(handles, labels, loc=3, numpoints=1, markerscale=10,
+                  bbox_to_anchor=(1.05, 0.3), borderaxespad=0.)
         
         plt.tight_layout()
 
