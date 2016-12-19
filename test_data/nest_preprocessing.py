@@ -389,8 +389,8 @@ class ViolaPreprocessing(object):
  
     def correct_any_GID(self, aGID):
         '''
-        Needs self.GIDs and self.GIDs_corrected. Checks to which population a
-        GID belongs and corrects it
+        Needs attributes self.GIDs and self.GIDs_corrected. Checks to which
+        population a GID belongs and corrects it
 
         Arguments
         ---------
@@ -404,7 +404,12 @@ class ViolaPreprocessing(object):
                 break
             else:
                 continue
-        return GID_corrected
+        try:
+            return GID_corrected
+        except UnboundLocalError:
+            errmsg = 'could not correct GID. Try deleting the file {} and re-run script'.format(os.path.join(
+                os.path.join(self.output_path, 'population_GIDs.json')))
+            raise Exception, errmsg
 
 
     def get_positions(self):
@@ -568,7 +573,7 @@ class ViolaPreprocessing(object):
         map_x = map_x.ravel()
 
         sptrains_coo = sptrains.tocoo().astype(dtype)
-        nspikes = np.asarray(sptrains_coo.sum(axis=1)).flatten()
+        nspikes = np.asarray(sptrains_coo.sum(axis=1)).flatten().astype(int)
         data = sptrains_coo.data
         col = sptrains_coo.col
         row = np.zeros(sptrains_coo.nnz)
