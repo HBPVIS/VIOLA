@@ -102,7 +102,7 @@ of the neurons.
 
 g       = 4.5  # ratio inhibitory weight/excitatory weight (before: 5.0)
 eta     = 2.0  # external rate relative to threshold rate
-epsilon = 0.8  # connection probability (before: 0.1)
+epsilon = 0.2  # connection probability (before: 0.1)
 
 '''
 Definition of the number of neurons in the network.
@@ -661,9 +661,7 @@ if False:
     pops['IN']['tgts'] = ['EX', 'IN']
     pops['STIM']['tgts'] = ['EX']
 
-    src_color = 'grey' # unique color for sources
-    tgt_color = 'white' # unique color for targets
-    red_conn_dens = 100 # reduce connection density
+    red_conn_dens = 1 # reduce connection density
 
     def plot_layer(ax, pop, pops_list):
         # plot neurons at their original location
@@ -691,15 +689,18 @@ if False:
                 srcloc = tp.GetPosition(srcid)[0]
                 tgtsloc = np.array(tp.GetTargetPositions(srcid, pops[tgt]['layer'])[0])
                 # targets do not get picked in the same order;
-                # they get sorted for reproducibility
+                # they are sorted here for reproducibility
                 tgtsloc = tgtsloc[np.argsort(tgtsloc[:,0])]
                 tgtsloc_show = tgtsloc[0:len(tgtsloc):red_conn_dens]
                 for tgtloc in tgtsloc_show:
                     plt.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
                              [z0, z1], c=pops[pop]['conn_color'], linewidth=1)
-
-                dots.append([tgtsloc_show, z1, tgt_color, pops[tgt]['color']])
-                dots.append([srcloc, z0, src_color, pops[pop]['color']])
+                    # highlight target
+                    plt.plot(tgtloc[0], tgtloc[1], zs=[z1], marker='o', markeredgecolor='none',
+                             markersize=2, color=pops[pop]['conn_color'], alpha=1.)
+                dots.append([srcloc, z0, 'white', 'black', 3])
+                if pop == 'IN' and tgt == 'EX': # final
+                    dots.append([tgtsloc_show, z1, pops[pop]['conn_color'], 'none', 2])
 
        #  draw connections from src to pop
         for src in pops_list:
@@ -718,9 +719,11 @@ if False:
                 for tgtloc in tgtsloc_show:
                     plt.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
                              [z0, z1], c=pops[src]['conn_color'], linewidth=1)
-
-                dots.append([tgtsloc_show, z1, tgt_color, pops[pop]['color']])
-                dots.append([srcloc, z0, src_color, pops[src]['color']])
+                    plt.plot(tgtloc[0], tgtloc[1], zs=[z1], marker='o', markeredgecolor='none',
+                             markersize=2, color=pops[src]['conn_color'], alpha=1.)
+                dots.append([srcloc, z0, 'white', 'black', 3])
+                if src == 'STIM': # final
+                    dots.append([tgtsloc_show, z1, pops[src]['conn_color'], 'none', 2])
         return dots
 
     def plot_dots(ax, dots):
@@ -732,7 +735,7 @@ if False:
                 xs = [data[0][0]]
                 ys = [data[0][1]]
             ax.plot(xs, ys, zs=data[1], marker='o', markeredgecolor=data[3],
-                    markersize=3, c=data[2], linestyle='none')
+                    markersize=data[4], c=data[2], linestyle='none', alpha=1.)
         return
 
     # set up figure
@@ -771,21 +774,18 @@ if False:
         [Patch(color=pops['STIM']['color']),
          Patch(color=pops['EX']['color']),
          Patch(color=pops['IN']['color']),
-         plt.Line2D((0,1),(0,0), color=src_color, marker='o',
-                    markeredgecolor=pops['EX']['color'], linestyle=''),
-         plt.Line2D((0,1),(0,0), color=tgt_color, marker='o',
-                    markeredgecolor=pops['EX']['color'], linestyle=''),
+         plt.Line2D((0,1),(0,0), color='white', marker='o',
+                    markeredgecolor='black', linestyle=''),
          plt.Line2D((0,1),(0,0), color=pops['EX']['conn_color']),
          plt.Line2D((0,1),(0,0), color=pops['IN']['conn_color'])]
     labels = \
         ['STIM',
          'EX',
          'IN',
-         'source in EX',
-         'target in EX',
+         'source',
          'exc. connection',
          'inh. connection']
-    ax.legend(handles, labels, numpoints=1, loc=2, bbox_to_anchor=(0.95, 0.8))
+    ax.legend(handles, labels, numpoints=1, loc=2, bbox_to_anchor=(0.95, 0.8), fontsize=10)
 
     ax.view_init(elev=12, azim=-60)
 
