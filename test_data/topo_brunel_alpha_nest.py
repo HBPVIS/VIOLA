@@ -102,7 +102,7 @@ of the neurons.
 
 g       = 4.5  # ratio inhibitory weight/excitatory weight (before: 5.0)
 eta     = 2.0  # external rate relative to threshold rate
-epsilon = 0.2  # connection probability (before: 0.1)
+epsilon = 0.8  # connection probability (before: 0.1)
 
 '''
 Definition of the number of neurons in the network.
@@ -177,19 +177,19 @@ indegrees = convergent connections with a fixed number of connections.
 extent_length = 4.   # in mm (layer size = extent_length x extent_length)
 sigma = 0.3          # Gaussian profile, sigma in mm
 
-pos_EX = list(((random.rand(2*NE) - 0.5) * extent_length).reshape(-1, 2))
-pos_IN = list(((random.rand(2*NI) - 0.5) * extent_length).reshape(-1, 2))
+pos_ex = list(((random.rand(2*NE) - 0.5) * extent_length).reshape(-1, 2))
+pos_in = list(((random.rand(2*NI) - 0.5) * extent_length).reshape(-1, 2))
 
-layerdict_EX = {
+layerdict_ex = {
     'extent' : [extent_length, extent_length],
-    'positions' : pos_EX,
+    'positions' : pos_ex,
     'elements' : 'iaf_psc_alpha',
     'edge_wrap' : True, # PBC
 }
 
-layerdict_IN = {
+layerdict_in = {
     'extent' : [extent_length, extent_length],
-    'positions' : pos_IN,
+    'positions' : pos_in,
     'elements' : 'iaf_psc_alpha',
     'edge_wrap' : True,
 }
@@ -203,16 +203,16 @@ around the center of the sheet.
 N_stim = int(NE * np.pi * stim_radius**2 / extent_length**2)
 
 n_stim = 0
-pos_STIM = []
+pos_stim = []
 while n_stim < N_stim:
     ppos = (random.rand(2) - 0.5) * 2 * stim_radius
     if ppos[0]**2 + ppos[1]**2 <= stim_radius**2:
-        pos_STIM.append(ppos)
+        pos_stim.append(ppos)
         n_stim += 1
 
 layerdict_stim = {
     'extent' : [extent_length, extent_length],
-    'positions' : pos_STIM,
+    'positions' : pos_stim,
     'elements' : 'parrot_neuron',
     'edge_wrap' : True,
 }
@@ -221,7 +221,7 @@ layerdict_stim = {
 Connection dictionaries are defined.
 '''
 
-conn_dict_EX = {
+conn_dict_ex = {
     'connection_type': 'convergent',
     'allow_autapses': False,
     'allow_multapses': True,
@@ -243,7 +243,7 @@ conn_dict_EX = {
     'number_of_connections' : CE,
     }
 
-conn_dict_IN = {
+conn_dict_in = {
     'connection_type': 'convergent',
     'allow_autapses': False,
     'allow_multapses': True,
@@ -328,8 +328,8 @@ Creation of the topology layers for excitatory and inhibitory neurons.
 GIDs and neuron positions are written to file.
 '''
 
-layer_in = tp.CreateLayer(layerdict_IN)
-layer_ex = tp.CreateLayer(layerdict_EX)
+layer_in = tp.CreateLayer(layerdict_in)
+layer_ex = tp.CreateLayer(layerdict_ex)
 layer_stim = tp.CreateLayer(layerdict_stim)
 
 tp.DumpLayerNodes(layer_ex, os.path.join(spike_output_path,
@@ -441,17 +441,17 @@ pre-defined excitatory/inhibitory synapse and the connection dictionaries.
 First, update the connection dictionaries with the synapses.
 '''
 
-conn_dict_EX['synapse_model'] = 'excitatory'
-conn_dict_IN['synapse_model'] = 'inhibitory'
+conn_dict_ex['synapse_model'] = 'excitatory'
+conn_dict_in['synapse_model'] = 'inhibitory'
 
 print("Excitatory connections")
 
-tp.ConnectLayers(layer_ex, layer_ex, conn_dict_EX)
-tp.ConnectLayers(layer_ex, layer_in, conn_dict_EX)
+tp.ConnectLayers(layer_ex, layer_ex, conn_dict_ex)
+tp.ConnectLayers(layer_ex, layer_in, conn_dict_ex)
 
 print("Inhibitory connections")
-tp.ConnectLayers(layer_in, layer_ex, conn_dict_IN)
-tp.ConnectLayers(layer_in, layer_in, conn_dict_IN)
+tp.ConnectLayers(layer_in, layer_ex, conn_dict_in)
+tp.ConnectLayers(layer_in, layer_in, conn_dict_in)
 
 '''
 Connect spike generator of external stimulus with the excitatory neurons.
@@ -577,27 +577,78 @@ merge_spike_files()
 write_population_GIDs()
 
 
-
-
+# imports for plotting etc.
+import json
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpc
-import json
+import mpl_toolkits.mplot3d.art3d as art3d
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+from matplotlib.patches import Patch
+from mpl_toolkits.mplot3d import Axes3D
 
-#population colors
+
+# dictionary for some population parameters
+pops = {}
+pops['EX'] = {}
+pops['IN'] = {}
+pops['STIM'] = {}
+
+# neuron numbers
+pops['EX']['N'] = NE
+pops['IN']['N'] = NI
+pops['STIM']['N'] = N_stim
+
+# positions
+pops['EX']['pos'] = pos_ex
+pops['IN']['pos'] = pos_in
+pops['STIM']['pos'] = pos_stim
+
+# layer
+pops['EX']['layer'] = layer_ex
+pops['IN']['layer'] = layer_in
+pops['STIM']['layer'] = layer_stim
+
+# layerdict
+pops['EX']['layerdict'] = layerdict_ex
+pops['IN']['layerdict'] = layerdict_in
+pops['STIM']['layerdict'] = layerdict_stim
+
+# nodes
+pops['EX']['nodes'] = nodes_ex
+pops['IN']['nodes'] = nodes_in
+pops['STIM']['nodes'] = nodes_stim
+
+# events
+pops['EX']['events'] = nest.GetStatus(espikes, 'events')[0]
+pops['IN']['events'] = nest.GetStatus(ispikes, 'events')[0]
+pops['STIM']['events'] = nest.GetStatus(stim_spikes, 'events')[0]
+
+# population colors
+pops['EX']['color'] =  mpc.hex2color('#b22222')       # firebrick
+pops['IN']['color'] =  mpc.hex2color('#000080')       # NavyBlue
+pops['STIM']['color'] =  mpc.hex2color('#696969')     # DimGray
+
+# population colors (just darker than population colors
+pops['EX']['conn_color'] = mpc.hex2color('#ff3030')   # firebrick1
+pops['IN']['conn_color'] = mpc.hex2color('#0000cd')   # MediumBlue
+pops['STIM']['conn_color'] = mpc.hex2color('#ff3030') # firebrick1
+
+# targets of the neuron type
+pops['EX']['tgts'] = ['EX', 'IN']
+pops['IN']['tgts'] = ['EX', 'IN']
+pops['STIM']['tgts'] = ['EX']
+
+# hex colors for VIOLA
 popColors = []
-# EX and IN from colormap, STIM in dark brownish grey
-cmap = plt.get_cmap('rainbow_r', 2)
-for i in range(cmap.N):
-    rgb = cmap(i)[:3]
-    col_hex = mpc.rgb2hex(rgb)
-    popColors.append(col_hex)
-popColors.append('#2E2E2E')
-popColors = ','.join(popColors)
+for pop in ['EX', 'IN', 'STIM']:
+    popColors.append(mpc.rgb2hex(pops[pop]['color']))
 
+# configuration dictionary for VIOLA
 config_dict = {}
 config_dict.update({
     "popNum": 3,
-    "popNames": ','.join(['EX','IN', 'STIM']),
+    "popNames": ','.join(['EX', 'IN', 'STIM']),
     "spikesFiles": [label+'-%i.gdf' % X for X in [0,1,2]],
     "timestamps": int(simtime / dt),
     "resolution": dt,
@@ -618,50 +669,11 @@ Plotting.
 '''
 
 # network sketch
-if False:
+if True:
     print('Plotting network sketch')
-    from matplotlib.patches import Patch
-    from mpl_toolkits.mplot3d import Axes3D
-    import mpl_toolkits.mplot3d.art3d as art3d
-
-
-    # define parameters for populations
-    pops = {}
-    pops['EX'] = {}
-    pops['IN'] = {}
-    pops['STIM'] = {}
-
-    # neuron numbers
-    pops['EX']['N'] = NE
-    pops['IN']['N'] = NI
-    pops['STIM']['N'] = N_stim
-
-    # positions
-    pops['EX']['pos'] = pos_EX
-    pops['IN']['pos'] = pos_IN
-    pops['STIM']['pos'] = pos_STIM
-
-    # layer
-    pops['EX']['layer'] = layer_ex
-    pops['IN']['layer'] = layer_in
-    pops['STIM']['layer'] = layer_stim
-
-    # population colors
-    pops['EX']['color'] = cmap(0)
-    pops['IN']['color'] = cmap(1)
-    pops['STIM']['color'] = mpc.hex2color(popColors.split(',')[2])
-
-    # population colors (just darker than population colors
-    pops['EX']['conn_color'] = [0.5*i for i in pops['EX']['color']]
-    pops['IN']['conn_color'] = [0.5*i for i in pops['IN']['color']]
-    pops['STIM']['conn_color'] = [0.5*i for i in pops['EX']['color']] # same as EX
-
-    # targets of the neuron type
-    pops['EX']['tgts'] = ['EX', 'IN']
-    pops['IN']['tgts'] = ['EX', 'IN']
-    pops['STIM']['tgts'] = ['EX']
 
     red_conn_dens = 1 # reduce connection density
+    print('  Diluting connection density: {}'.format(red_conn_dens))
 
     def plot_layer(ax, pop, pops_list):
         # plot neurons at their original location
@@ -687,20 +699,25 @@ if False:
                     xyloc = [-0.8, -0.8]
                 srcid = tp.FindNearestElement(pops[pop]['layer'], xyloc, False)
                 srcloc = tp.GetPosition(srcid)[0]
-                tgtsloc = np.array(tp.GetTargetPositions(srcid, pops[tgt]['layer'])[0])
+                tgtsloc = np.array(tp.GetTargetPositions(srcid,
+                                                         pops[tgt]['layer'])[0])
                 # targets do not get picked in the same order;
                 # they are sorted here for reproducibility
                 tgtsloc = tgtsloc[np.argsort(tgtsloc[:,0])]
                 tgtsloc_show = tgtsloc[0:len(tgtsloc):red_conn_dens]
                 for tgtloc in tgtsloc_show:
                     plt.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
-                             [z0, z1], c=pops[pop]['conn_color'], linewidth=1)
+                             [z0, z1], c=pops[pop]['conn_color'], linewidth=1,
+                             alpha=0.1)
                     # highlight target
-                    plt.plot(tgtloc[0], tgtloc[1], zs=[z1], marker='o', markeredgecolor='none',
-                             markersize=2, color=pops[pop]['conn_color'], alpha=1.)
+                    plt.plot(tgtloc[0], tgtloc[1], zs=[z1], marker='o',
+                             markeredgecolor='none',
+                             markersize=2, color=pops[pop]['conn_color'],
+                             alpha=1.)
                 dots.append([srcloc, z0, 'white', 'black', 3])
                 if pop == 'IN' and tgt == 'EX': # final
-                    dots.append([tgtsloc_show, z1, pops[pop]['conn_color'], 'none', 2])
+                    dots.append([tgtsloc_show, z1, pops[pop]['conn_color'],
+                                 'none', 2])
 
        #  draw connections from src to pop
         for src in pops_list:
@@ -713,17 +730,22 @@ if False:
                     xyloc = [0.8, -0.8]
                 srcid = tp.FindNearestElement(pops[src]['layer'], xyloc, False)
                 srcloc = tp.GetPosition(srcid)[0]
-                tgtsloc = np.array(tp.GetTargetPositions(srcid, pops[pop]['layer'])[0])
+                tgtsloc = np.array(tp.GetTargetPositions(srcid,
+                                                         pops[pop]['layer'])[0])
                 tgtsloc = tgtsloc[np.argsort(tgtsloc[:,0])]
                 tgtsloc_show = tgtsloc[0:len(tgtsloc):red_conn_dens]
                 for tgtloc in tgtsloc_show:
                     plt.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
-                             [z0, z1], c=pops[src]['conn_color'], linewidth=1)
-                    plt.plot(tgtloc[0], tgtloc[1], zs=[z1], marker='o', markeredgecolor='none',
-                             markersize=2, color=pops[src]['conn_color'], alpha=1.)
+                             [z0, z1], c=pops[src]['conn_color'], linewidth=1,
+                             alpha=0.1)
+                    plt.plot(tgtloc[0], tgtloc[1], zs=[z1], marker='o',
+                             markeredgecolor='none',
+                             markersize=2, color=pops[src]['conn_color'],
+                             alpha=1.)
                 dots.append([srcloc, z0, 'white', 'black', 3])
                 if src == 'STIM': # final
-                    dots.append([tgtsloc_show, z1, pops[src]['conn_color'], 'none', 2])
+                    dots.append([tgtsloc_show, z1, pops[src]['conn_color'],
+                                 'none', 2])
         return dots
 
     def plot_dots(ax, dots):
@@ -785,7 +807,8 @@ if False:
          'source',
          'exc. connection',
          'inh. connection']
-    ax.legend(handles, labels, numpoints=1, loc=2, bbox_to_anchor=(0.95, 0.8), fontsize=10)
+    ax.legend(handles, labels, numpoints=1, loc=2, bbox_to_anchor=(0.95, 0.8),
+              fontsize=10)
 
     ax.view_init(elev=12, azim=-60)
 
@@ -801,21 +824,16 @@ if False:
 # sorted raster plot:
 if True:
     print("Plotting sorted raster plot")
-    import matplotlib.pyplot as plt
-    import matplotlib.gridspec as gridspec
 
     plt.rcParams['figure.dpi'] = 160.
 
     # stepsize for diluting (1 = all)
     dilute = int(10) # int
+    print('  Diluting spike number: {}'.format(dilute))
 
-    eevents = nest.GetStatus(espikes, 'events')[0]
-    ievents = nest.GetStatus(ispikes, 'events')[0]
-
-    stim_events = nest.GetStatus(stim_spikes, 'events')[0]
-
-    def plot_spikes(ax, nodes=nodes_ex, events=eevents,
-                    layerdict=layerdict_EX,
+    def plot_spikes(ax, nodes=pops['EX']['nodes'],
+                    events=pops['EX']['events'],
+                    layerdict=pops['EX']['layerdict'],
                     color='r',
                     marker='.', poplabel='EX',
                     position_sorted=True):
@@ -825,7 +843,7 @@ if True:
         X = []
         T = []
         for i, j in enumerate(nodes):
-            #extract spikes
+            # extract spikes
             t = events['times'][events['senders'] == j]
             x, y = layerdict['positions'][i]
             if t.size > 0:
@@ -849,50 +867,25 @@ if True:
 
     def plot_spikes_all_pop(ax, position_sorted=True):
         if position_sorted: # stimulus on top
-            plot_spikes(ax, nodes=nodes_ex, events=eevents,
-                        layerdict=layerdict_EX,
-                        color=cmap(0),
-                        marker='.', poplabel='EX',
-                        position_sorted=position_sorted)
-            plot_spikes(ax, nodes=nodes_in, events=ievents,
-                        layerdict=layerdict_IN,
-                        color=cmap(1),
-                        marker='.', poplabel='IN',
-                        position_sorted=position_sorted)
-            plot_spikes(ax, nodes=nodes_stim, events=stim_events,
-                        layerdict=layerdict_stim,
-                        color='k',
-                        marker='.', poplabel='STIM',
-                        position_sorted=position_sorted)
+            pops_list = ['EX', 'IN', 'STIM']
             ax.set_title('sorted spike raster')
         else:
-            plot_spikes(ax, nodes=nodes_stim, events=stim_events,
-                        layerdict=layerdict_stim,
-                        color='k',
-                        marker='.', poplabel='STIM',
-                        position_sorted=position_sorted)
-            plot_spikes(ax, nodes=nodes_ex, events=eevents,
-                        layerdict=layerdict_EX,
-                        color=cmap(0),
-                        marker='.', poplabel='EX',
-                        position_sorted=position_sorted)
-            plot_spikes(ax, nodes=nodes_in, events=ievents,
-                        layerdict=layerdict_IN,
-                        color=cmap(1),
-                        marker='.', poplabel='IN',
-                        position_sorted=position_sorted)
+            pops_list = ['STIM', 'EX', 'IN']
             ax.set_title('unsorted spike raster')
+        for pop in pops_list:
+            plot_spikes(ax, nodes=pops[pop]['nodes'],
+                        events=pops[pop]['events'],
+                        layerdict=pops[pop]['layerdict'],
+                        color=pops[pop]['color'],
+                        marker='.', poplabel=pop,
+                        position_sorted=position_sorted)
         return
 
 
     def plot_spikes_figure():
         fig = plt.figure(figsize=(8., 8.))
         gs = gridspec.GridSpec(6,5)
-        #fig.subplots_adjust(top=0.9, bottom=0.07, left=0.1, right=0.95,
-        #                    hspace=0.05, wspace=0.1)
 
-        colors = [cmap(0), cmap(1), mpc.hex2color(popColors.split(',')[2])]
-        
         # unsorted raster
         ax = plt.subplot(gs[:2,:4]) # unsorted
         plot_spikes_all_pop(ax, position_sorted=False)
@@ -900,32 +893,41 @@ if True:
         ax.set_xticklabels([])
         ax.set_xlabel('')
         ax.set_ylabel('neuron id')
-        ax.text(-0.05, 1.05, 'A', fontsize=16, ha='left', va='bottom', transform=ax.transAxes)
+        ax.text(-0.05, 1.05, 'A', fontsize=16, ha='left', va='bottom',
+                transform=ax.transAxes)
 
         # take handles and labels from unsorted raster, but place legend to
         # bottom right corner
         handles, labels = ax.get_legend_handles_labels()
-       
-        
+
+
         # spike count histogram over unit
         ax = plt.subplot(gs[:2, 4])
         allnodes = np.array(nodes_ex + nodes_in + nodes_stim)
         binsize = 20.
         bins = np.arange(allnodes.min(), allnodes.max()+binsize, binsize)
-        ax.hist([eevents['senders'], ievents['senders'], stim_events['senders']], bins=bins, histtype='step', color=colors, orientation='horizontal', stacked=False, alpha=1)
+        ax.hist([pops['EX']['events']['senders'],
+                 pops['IN']['events']['senders'],
+                 pops['STIM']['events']['senders']],
+                bins=bins, histtype='step',
+                color=[pops['EX']['color'],
+                       pops['IN']['color'],
+                       pops['STIM']['color']],
+                orientation='horizontal', stacked=False, alpha=1)
         ax.set_yticklabels([])
-        # ax.axis(ax.axis('tight'))
         ax.set_ylim(bins[0], bins[-1])
         ax.set_xticks([0, ax.axis()[1]])
-        ax.text(-0.25, 1.05, 'B', ha='left', fontsize=16, va='bottom', transform=ax.transAxes)
+        ax.text(-0.25, 1.05, 'B', ha='left', fontsize=16, va='bottom',
+                transform=ax.transAxes)
         ax.set_title('spike\ncount')
-        
+
         # sorted raster
         ax = plt.subplot(gs[2:4,:4]) # sorted
         plot_spikes_all_pop(ax, position_sorted=True)
         ax.set_ylabel('x position (mm)')
         ax.set_xticklabels([])
-        ax.text(-0.05, 1.05, 'C', ha='left', fontsize=16, va='bottom', transform=ax.transAxes)
+        ax.text(-0.05, 1.05, 'C', ha='left', fontsize=16, va='bottom',
+                transform=ax.transAxes)
 
 
         # spike count histogram over space
@@ -933,36 +935,62 @@ if True:
         binsize=0.05
         bins = np.arange(-2, 2+binsize, binsize)
         xlists = []
-        for x, gid0, senders in zip([np.array(layerdict_EX['positions'])[:, 0], np.array(layerdict_IN['positions'])[:, 0], np.array(layerdict_stim['positions'])[:, 0]],
-                                        [nodes_ex[0], nodes_in[0], nodes_stim[0]],
-                                        [eevents['senders'], ievents['senders'], stim_events['senders']]):
+        for x, gid0, senders in zip([np.array(pops['IN']['layerdict']['positions'])[:, 0],
+                                     np.array(pops['EX']['layerdict']['positions'])[:, 0],
+                                     np.array(pops['STIM']['layerdict']['positions'])[:, 0]],
+                                        [pops['IN']['nodes'][0],
+                                         pops['EX']['nodes'][0],
+                                         pops['STIM']['nodes'][0]],
+                                        [pops['IN']['events']['senders'],
+                                         pops['EX']['events']['senders'],
+                                         pops['STIM']['events']['senders']]):
             xlists += [[x[n-gid0] for n in senders]]
-        ax.hist(xlists, bins=bins, histtype='step', color=colors, orientation='horizontal', stacked=False, alpha=1)
-        # ax.axis(ax.axis('tight'))
+        colors_IES = [pops['IN']['color'], pops['EX']['color'],
+                      pops['STIM']['color']]
+        bottom = 0
+        for i,ev in enumerate(xlists):
+            ax.hist(xlists[i], bins=bins, histtype='step', color=colors_IES[i],
+                    orientation='horizontal', stacked=False, alpha=1,
+                    bottom=bottom)
+            ax.plot((bottom, bottom), (-extent_length/2., extent_length/2.),
+                    'k', linestyle='--') # dashed line
+            h,b = np.histogram(ev, bins)
+            bottom += np.max(h)
+
+        ax.set_xlim((0, 1.05*bottom))
         ax.set_ylim(bins[0], bins[-1])
         ax.set_xlabel('count')
         ax.set_yticklabels([])
         ax.set_xticks([0, ax.axis()[1]])
-        ax.text(-0.25, 1.05, 'D', ha='left', va='bottom', fontsize=16, transform=ax.transAxes)
+        ax.text(-0.25, 1.05, 'D', ha='left', va='bottom', fontsize=16,
+                transform=ax.transAxes)
 
 
         # spike count histogram over time
         ax = plt.subplot(gs[4:6, :4])
         bins = np.arange(transient, simtime+1, 1)
         bottom = 0
-        for i,ev in enumerate([eevents['times'], ievents['times'], stim_events['times']]):
-            ax.hist(ev, bins=bins, histtype='step', color=colors[i], stacked=False, alpha=1, bottom=bottom)
+        for i,ev in enumerate([pops['IN']['events']['times'],
+                               pops['EX']['events']['times'],
+                               pops['STIM']['events']['times']]):
+            ax.hist(ev, bins=bins, histtype='step', color=colors_IES[i],
+                    stacked=False, alpha=1, bottom=bottom)
+            ax.plot((transient, simtime), (bottom, bottom), 'k',
+                    linestyle='--') # dashed line
             h,b = np.histogram(ev, bins)
             bottom += np.max(h)
+
+        ax.set_ylim((0, 1.05*bottom))
 
         ax.set_xlabel('time (ms)')
         ax.set_ylabel('count')
         ax.set_title('spike count')
-        ax.text(-0.05, 1.05, 'E', ha='left', va='bottom', fontsize=16, transform=ax.transAxes)
+        ax.text(-0.05, 1.05, 'E', ha='left', va='bottom', fontsize=16,
+                transform=ax.transAxes)
 
         ax.legend(handles, labels, loc=3, numpoints=1, markerscale=10,
                   bbox_to_anchor=(1.05, 0.3), borderaxespad=0.)
-        
+
         plt.tight_layout()
 
         fig.savefig(os.path.join(spike_output_path, 'raster.pdf'), dpi=300)
