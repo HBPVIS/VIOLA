@@ -52,7 +52,7 @@ preprocess = ViolaPreprocessing(input_path=input_path,
                             GID_filename = 'population_GIDs.dat',
                             position_filename_label = 'neuron_positions-',
                             spike_detector_label = 'spikes-',
-                            TRANSIENT=0.,
+                            TRANSIENT=200.,
                             BINSIZE_TIME=1.,
                             BINSIZE_AREA=0.4,
 )

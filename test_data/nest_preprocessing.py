@@ -152,7 +152,7 @@ class ViolaPreprocessing(object):
                  GID_filename = 'population_GIDs.dat',
                  position_filename_label = 'neuron_positions-',
                  spike_detector_label = 'spikes-',
-                 TRANSIENT=0.,
+                 TRANSIENT=200.,
                  BINSIZE_TIME=1.,
                  BINSIZE_AREA=0.1,
                 ):
@@ -720,7 +720,7 @@ if __name__ == '__main__':
                                 GID_filename = 'population_GIDs.dat',
                                 position_filename_label = 'neuron_positions-',
                                 spike_detector_label = 'spikes-',
-                                TRANSIENT=100.,
+                                TRANSIENT=200.,
                                 BINSIZE_TIME=1.,
                                 BINSIZE_AREA=0.1,
     )
@@ -861,21 +861,18 @@ if __name__ == '__main__':
         spikesFiles = ','.join([os.path.basename(sp[i]) \
                                 for i in range(len(sp))])
 
+
+        # population colors, same as in simulation script
         popColors = []
-        num_colors = len(preprocess.X)
-
-        # if a population is called 'STIM', its color shall be dark grey
-        if 'STIM' in preprocess.X:
-            num_colors -= 1
-
-        cmap = plt.get_cmap('rainbow_r', num_colors)
-        for i in range(cmap.N):
-            rgb = cmap(i)[:3]
-            col_hex = mpc.rgb2hex(rgb)
-            popColors.append(col_hex)
-
-        if 'STIM' in preprocess.X:
-            popColors.append('#2E2E2E')
+        for X in preprocess.X:
+            if X == 'EX':
+                popColors.append('#b22222') # firebrick
+            elif X == 'IN':
+                popColors.append('#0000cd') # MediumBlue
+            elif X == 'STIM':
+                popColors.append('#696969') # DimGray
+            else:
+                raise Exception('Population color not defined!')
         popColors = ','.join(popColors)
 
         config_dict = {}

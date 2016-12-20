@@ -366,7 +366,7 @@ nest.SetStatus(espikes,[{
                    "withtime": True,
                    "withgid": True,
                    "to_file": True,
-                   "start" : transient, 
+                   "start" : transient,
                    }])
 
 nest.SetStatus(ispikes,[{
@@ -626,12 +626,12 @@ pops['STIM']['events'] = nest.GetStatus(stim_spikes, 'events')[0]
 
 # population colors
 pops['EX']['color'] =  mpc.hex2color('#b22222')       # firebrick
-pops['IN']['color'] =  mpc.hex2color('#000080')       # NavyBlue
+pops['IN']['color'] =  mpc.hex2color('#0000cd')       # MediumBlue
 pops['STIM']['color'] =  mpc.hex2color('#696969')     # DimGray
 
 # population colors (just darker than population colors
 pops['EX']['conn_color'] = mpc.hex2color('#ff3030')   # firebrick1
-pops['IN']['conn_color'] = mpc.hex2color('#0000cd')   # MediumBlue
+pops['IN']['conn_color'] = mpc.hex2color('#4169e1')   # RoyalBlue
 pops['STIM']['conn_color'] = mpc.hex2color('#ff3030') # firebrick1
 
 # targets of the neuron type
