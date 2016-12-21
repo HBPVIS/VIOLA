@@ -24,7 +24,6 @@ Usage:
 
     python nest_preprocessing.py out_raw out_proc
 '''
-
 import sys
 import numpy as np
 import scipy.sparse as sp
@@ -574,26 +573,24 @@ class ViolaPreprocessing(object):
 
         sptrains_coo = sptrains.tocoo().astype(dtype)
         nspikes = np.asarray(sptrains_coo.sum(axis=1)).flatten().astype(int)
-        data = sptrains_coo.data
-        col = sptrains_coo.col
         row = np.zeros(sptrains_coo.nnz)
         j = 0
         for i, n in enumerate(nspikes):
             [ind] = np.where((map_x == pos_x[i]) & (map_y==pos_y[i]))[0]
             row[j:j+n] = ind
             j += n
-
-        binned_sptrains_coo = sp.coo_matrix((data, (row, col)),
+        binned_sptrains_coo = sp.coo_matrix((sptrains_coo.data,
+                                             (row, sptrains.indices)),
                                             shape=(map_x.size,
                                                    sptrains.shape[1]))
 
         try:
             assert(sptrains.sum() == binned_sptrains_coo.tocsr().sum())
         except AssertionError as ae:
-            raise ae, \
-                'sptrains.sum()={0} != binned_sptrains_coo.sum()={1}'.format( \
+            mssg = 'sptrains.sum()={0} != binned_sptrains_coo.sum()={1}'.format(
                     sptrains.sum(), binned_sptrains_coo.tocsr().sum())
-
+            raise ae, mssg
+                
         return binned_sptrains_coo.tocsr()
 
 
@@ -759,7 +756,7 @@ if __name__ == '__main__':
                 X, spikes, preprocess.time_bins, dtype=np.uint8)
             binned_sptrains = preprocess.compute_pos_binned_sptrains(
                 preprocess.positions_corrected[X], sptrains, dtype=np.uint16)
-
+            
             #spike counts and rates per spatial bin
             binned_spcounts = np.asarray(
                 binned_sptrains.sum(axis=1).astype(int).reshape((
