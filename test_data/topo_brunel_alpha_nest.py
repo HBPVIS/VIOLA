@@ -100,9 +100,9 @@ Definition of the parameters crucial for asynchronous irregular firing
 of the neurons.
 '''
 
-g       = 4.5  # ratio inhibitory weight/excitatory weight (before: 5.0)
-eta     = 2.0  # external rate relative to threshold rate
-epsilon = 0.2  # connection probability (before: 0.1)
+g       = 5.  # ratio inhibitory weight/excitatory weight (before: 5.0)
+eta     = 1.  # external rate relative to threshold rate
+epsilon = 0.05  # connection probability (before: 0.1)
 
 '''
 Definition of the number of neurons in the network.
@@ -141,7 +141,7 @@ neuron_params= {"C_m":        CMem,
                 "V_reset":    0.0,
                 "V_m":        0.0,
                 "V_th":       theta}
-J      = 2.        # postsynaptic amplitude in mV (before: 0.1)
+J      = 0.5        # postsynaptic amplitude in mV (before: 0.1)
 J_unit = ComputePSPnorm(tauMem, CMem, tauSyn)
 J_ex   = J / J_unit # amplitude of excitatory postsynaptic current
 J_in   = -g*J_ex    # amplitude of inhibitory postsynaptic current
@@ -161,12 +161,12 @@ p_rate = 1000.0*nu_ex*CE
 Parameters for a spatially confined stimulus.
 '''
 
-stim_radius = 0.5       # radius of a circle in mm for location of stimulus
+stim_radius = 0.25      # radius of a circle in mm for location of stimulus
 mask_radius_stim = 0.3  # mask radius of stimulus in mm around each parrot neuron
 num_stim_conn = 100     # number of connections inside mask_radius_conn
 stim_start = 500.       # start time of stimulus in ms
 stim_stop = 550.        # stop time of stimulus in ms
-stim_rate = 500.        # rate of parrot neurons in Hz during stimulus activation
+stim_rate = 200.        # rate of parrot neurons in Hz during stimulus activation
 stim_weight_scale = 10. # multiplied with J_ex for stimulus
 
 '''
@@ -291,11 +291,15 @@ label_positions = 'neuron_positions' # neuron positions
 
 '''
 Create the file output destination folder if it does not exist.
+Delete old simulation files if the folder is already present
 '''
 
 if not os.path.isdir(spike_output_path):
     os.mkdir(spike_output_path)
-
+else:
+    for fil in os.listdir(spike_output_path):
+        os.remove(os.path.join(spike_output_path, fil))
+    
 '''
 Reset the simulation kernel.
 Configuration of the simulation kernel by the previously defined time
@@ -828,7 +832,7 @@ if True:
     plt.rcParams['figure.dpi'] = 160.
 
     # stepsize for diluting (1 = all)
-    dilute = int(10) # int
+    dilute = int(5) # int
     print('  Diluting spike number: {}'.format(dilute))
 
     def plot_spikes(ax, nodes=pops['EX']['nodes'],
@@ -856,11 +860,11 @@ if True:
 
                 X = r_[X, zeros_like(t) + pos]
 
-        # dilute
-        X = X[np.arange(0, len(X), dilute)]
-        T = T[np.arange(0, len(T), dilute)]
+        # # dilute
+        # X = X[np.arange(0, len(X), dilute)]
+        # T = T[np.arange(0, len(T), dilute)]
 
-        ax.plot(T, X, marker, markersize=1., color=color, label=poplabel,
+        ax.plot(T[::dilute], X[::dilute], marker, markersize=1., color=color, label=poplabel,
                 rasterized=True)
         return
 
@@ -890,6 +894,7 @@ if True:
         ax = plt.subplot(gs[:2,:4]) # unsorted
         plot_spikes_all_pop(ax, position_sorted=False)
         ax.axis(ax.axis('tight'))
+        ax.set_xlim(transient, simtime)
         ax.set_xticklabels([])
         ax.set_xlabel('')
         ax.set_ylabel('neuron id')
@@ -925,6 +930,7 @@ if True:
         ax = plt.subplot(gs[2:4,:4]) # sorted
         plot_spikes_all_pop(ax, position_sorted=True)
         ax.set_ylabel('x position (mm)')
+        ax.set_xlim(transient, simtime)
         ax.set_xticklabels([])
         ax.text(-0.05, 1.05, 'C', ha='left', fontsize=16, va='bottom',
                 transform=ax.transAxes)
@@ -981,7 +987,7 @@ if True:
             bottom += np.max(h)
 
         ax.set_ylim((0, 1.05*bottom))
-
+        ax.set_xlim(transient, simtime)
         ax.set_xlabel('time (ms)')
         ax.set_ylabel('count')
         ax.set_title('spike count')
@@ -994,6 +1000,6 @@ if True:
         plt.tight_layout()
 
         fig.savefig(os.path.join(spike_output_path, 'raster.pdf'), dpi=300)
-        plt.show()
+        # plt.show()
 
     plot_spikes_figure()
