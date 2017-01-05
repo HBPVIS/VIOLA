@@ -102,13 +102,13 @@ of the neurons.
 
 g       = 4.5  # ratio inhibitory weight/excitatory weight (before: 5.0)
 eta     = 2.0  # external rate relative to threshold rate
-epsilon = 0.8  # connection probability (before: 0.1)
+epsilon = 0.2  # connection probability (before: 0.1)
 
 '''
 Definition of the number of neurons in the network.
 '''
 
-order     = 2500
+order     = 5000
 NE        = 4*order # number of excitatory neurons
 NI        = 1*order # number of inhibitory neurons
 N_neurons = NE+NI   # number of neurons in total
@@ -141,7 +141,7 @@ neuron_params= {"C_m":        CMem,
                 "V_reset":    0.0,
                 "V_m":        0.0,
                 "V_th":       theta}
-J      = 1.0        # postsynaptic amplitude in mV (before: 0.1)
+J      = 2.        # postsynaptic amplitude in mV (before: 0.1)
 J_unit = ComputePSPnorm(tauMem, CMem, tauSyn)
 J_ex   = J / J_unit # amplitude of excitatory postsynaptic current
 J_in   = -g*J_ex    # amplitude of inhibitory postsynaptic current
@@ -669,7 +669,7 @@ Plotting.
 '''
 
 # network sketch
-if True:
+if False:
     print('Plotting network sketch')
 
     red_conn_dens = 1 # reduce connection density
