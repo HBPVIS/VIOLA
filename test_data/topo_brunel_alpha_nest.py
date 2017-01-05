@@ -100,8 +100,8 @@ Definition of the parameters crucial for asynchronous irregular firing
 of the neurons.
 '''
 
-g       = 5.  # ratio inhibitory weight/excitatory weight (before: 5.0)
-eta     = 1.  # external rate relative to threshold rate
+g       = 4.5  # ratio inhibitory weight/excitatory weight (before: 5.0)
+eta     = 0.7  # external rate relative to threshold rate
 epsilon = 0.05  # connection probability (before: 0.1)
 
 '''
@@ -128,7 +128,7 @@ The synaptic currents are normalized such that the amplitude of the
 PSP is J.
 '''
 
-tauSyn = 0.5    # synaptic time constant in ms
+tauSyn = 5.     # synaptic time constant in ms
 tauMem = 20.0   # time constant of membrane potential in ms
 CMem   = 250.0  # capacitance of membrane in in pF
 theta  = 20.0   # membrane threshold potential in mV
@@ -141,7 +141,7 @@ neuron_params= {"C_m":        CMem,
                 "V_reset":    0.0,
                 "V_m":        0.0,
                 "V_th":       theta}
-J      = 0.5        # postsynaptic amplitude in mV (before: 0.1)
+J      = 0.4        # postsyaptic amplitude in mV (before: 0.1)
 J_unit = ComputePSPnorm(tauMem, CMem, tauSyn)
 J_ex   = J / J_unit # amplitude of excitatory postsynaptic current
 J_in   = -g*J_ex    # amplitude of inhibitory postsynaptic current
@@ -235,7 +235,7 @@ conn_dict_ex = {
     'kernel' : {
         'gaussian' : {
             'p_center' : 1.,
-            'sigma' : sigma,
+            'sigma' : sigma*0.9,
             'mean' : 0.,
             'c' : 0.,
             }
@@ -312,7 +312,7 @@ nest.ResetKernel()
 nest.SetKernelStatus({"resolution": dt,
                       "print_time": True,
                       "overwrite_files": True,
-                      'local_num_threads': 4,
+                      'local_num_threads': 48,
                       'grng_seed': 234567})
 
 print("Building network")
