@@ -44,8 +44,10 @@ Importing all necessary modules for simulation, analysis and plotting.
 from scipy.optimize import fsolve
 
 import nest
+nest.set_verbosity('M_WARNING')
 import nest.raster_plot
 import nest.topology as tp
+import ConnPlotter as cpl
 
 import time
 import os
@@ -53,6 +55,17 @@ import sys
 import glob
 import numpy as np
 from numpy import exp, random, zeros_like, r_
+from multiprocessing import cpu_count
+
+import json
+import matplotlib.pyplot as plt
+import matplotlib.colors as mpc
+import mpl_toolkits.mplot3d.art3d as art3d
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+from matplotlib.patches import Patch
+from matplotlib.colors import LinearSegmentedColormap
+from mpl_toolkits.mplot3d import Axes3D
 
 random.seed(123456)
 
@@ -202,6 +215,7 @@ around the center of the sheet.
 
 N_stim = int(NE * np.pi * stim_radius**2 / extent_length**2)
 
+
 n_stim = 0
 pos_stim = []
 while n_stim < N_stim:
@@ -240,6 +254,7 @@ conn_dict_ex = {
             'c' : 0.,
             }
         },
+    'mask' : {'circular' : {'radius' : 2.} },
     'number_of_connections' : CE,
     }
 
@@ -262,6 +277,7 @@ conn_dict_in = {
             'c' : 0.,
             }
         },
+    'mask' : {'circular' : {'radius' : 2.} },
     'number_of_connections' : CI,
     }
 
@@ -274,6 +290,7 @@ conn_dict_stim = {
             'radius' : mask_radius_stim
             }
         },
+    'kernel' : 1.,
     'number_of_connections' : num_stim_conn,
     }
 
@@ -312,7 +329,7 @@ nest.ResetKernel()
 nest.SetKernelStatus({"resolution": dt,
                       "print_time": True,
                       "overwrite_files": True,
-                      'local_num_threads': 48,
+                      'local_num_threads': cpu_count(),
                       'grng_seed': 234567})
 
 print("Building network")
@@ -447,6 +464,7 @@ First, update the connection dictionaries with the synapses.
 
 conn_dict_ex['synapse_model'] = 'excitatory'
 conn_dict_in['synapse_model'] = 'inhibitory'
+conn_dict_stim['synapse_model'] = 'excitatory'
 
 print("Excitatory connections")
 
@@ -471,6 +489,34 @@ variable.
 '''
 
 endbuild=time.time()
+
+# # ConnPlotter test plot
+# if True:
+#     nest.CopyModel("static_synapse","STIM", {"weight":stim_weight_scale*J_ex})
+#     conn_dict_stim['synapse_model'] = 'STIM' # somehow 
+#     lList = [
+#         ('STIM', layerdict_stim),
+#         ('EX', layerdict_ex),
+#         ('IN', layerdict_in),
+#         ]
+#     cList = [
+#         ('STIM', 'EX', conn_dict_stim),
+#         ('EX', 'EX', conn_dict_ex),
+#         ('EX', 'IN', conn_dict_ex),
+#         ('IN', 'EX', conn_dict_in),
+#         ('IN', 'IN', conn_dict_in),
+#         ]
+#     synTypes = ((
+#         cpl.SynType('excitatory', J_ex, 'r'),
+#         cpl.SynType('inhibitory', J_in, 'b'),
+#         cpl.SynType('STIM', stim_weight_scale*J_ex, 'k')
+#         ),)
+#     s_cp = cpl.ConnectionPattern(lList, cList, synTypes=synTypes)
+#     s_cp.plot(colorLimits=[0,100])
+#     s_cp.plot(aggrSyns=True, colorLimits=[0,100])
+#     plt.show()
+
+
 
 '''
 Simulation of the network.
@@ -581,15 +627,6 @@ merge_spike_files()
 write_population_GIDs()
 
 
-# imports for plotting etc.
-import json
-import matplotlib.pyplot as plt
-import matplotlib.colors as mpc
-import mpl_toolkits.mplot3d.art3d as art3d
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-from matplotlib.patches import Patch
-from mpl_toolkits.mplot3d import Axes3D
 
 
 # dictionary for some population parameters
@@ -673,7 +710,7 @@ Plotting.
 '''
 
 # network sketch
-if False:
+if True:
     print('Plotting network sketch')
 
     red_conn_dens = 1 # reduce connection density
@@ -765,11 +802,19 @@ if False:
         return
 
     # set up figure
-    fig = plt.figure(figsize=(6.5,5))
-    fig.subplots_adjust(top=1., bottom=0.08, left=0., right=0.65)
-    ax = fig.gca(projection='3d')
+    fig = plt.figure(figsize=(6.5*2,5))
+    # fig.subplots_adjust(top=1., bottom=0.08, left=0., right=0.65)
+    # ax = fig.gca(projection='3d')
+    from matplotlib.gridspec import GridSpec
+    ax = fig.add_subplot(GridSpec(1, 1, left=0.0, right=0.45, top=0.95, bottom=0.05)[:, :], projection='3d')
+    gs = GridSpec(3, 2, left=0.55, top=0.95, bottom=0.05)
 
     # build figure from bottom to top
+    lList = [
+        ('STIM', layerdict_stim),
+        ('EX', layerdict_ex),
+        ('IN', layerdict_in),
+        ]
     pops_list = ['IN', 'EX', 'STIM'] # bottom, center, top
     dots = []
     for pop in pops_list: # from bottom to top
@@ -811,12 +856,109 @@ if False:
          'source',
          'exc. connection',
          'inh. connection']
-    ax.legend(handles, labels, numpoints=1, loc=2, bbox_to_anchor=(0.95, 0.8),
+    ax.legend(handles, labels, numpoints=1, loc=2, bbox_to_anchor=(0.8, 0.9),
               fontsize=10)
 
     ax.view_init(elev=12, azim=-60)
+    
+    ax = fig.add_subplot(111)
+    ax.axis('off')
+    ax.text(0.05, 0.95, 'A',
+        horizontalalignment='center',
+        verticalalignment='center',
+        fontsize=16, fontweight='demibold',
+        transform=fig.transFigure)
+    
+    # plot connectivity using ConnPlotter's style
+    conns = [[1, 0], [1, 1], [1, 1]]
+    pList = ['EX', 'IN']
+    cDicts = [conn_dict_stim, conn_dict_ex, conn_dict_in]
+    for i, ((pre, lDict), cDict, conn) in enumerate(zip(lList, cDicts, conns)):
+        for j, post in enumerate(pList):
+            ax = fig.add_subplot(gs[i, j], aspect='equal')
+            extent = lDict['extent']
+            x = np.linspace(-extent[0]/2, extent[0]/2, 101)
+            y = np.linspace(-extent[1]/2, extent[1]/2, 101)
+            X,Y = np.meshgrid(x, y)
+            C = np.zeros(X.shape)
+            if conn[j]:
+                if 'kernel' not in cDict.keys() or cDict['kernel'] == 1.:
+                    try:
+                        weights = epsilon_stim = num_stim_conn*N_stim / NE * cDict['weights']
+                        C[np.sqrt(X**2 + Y**2) <= cDict['mask']['circular']['radius']] = weights
+                        # cmap = 'gray_r'
+                        colors = [(1, 1, 1), (1, 0, 0)]
+                        cmap =  LinearSegmentedColormap.from_list('reds', colors, N=64)
+                        vmin = 0
+                        vmax = weights
+                    except KeyError as ae:
+                        raise ae
+                if type(cDict['kernel']) is dict:
+                    try:
+                        sigma = cDict['kernel']['gaussian']['sigma']
+                        if 'mask' in cDict.keys():
+                            mask = np.sqrt(X**2 + Y**2) <= cDict['mask']['circular']['radius']
+                            weights = cDict['weights']*epsilon
+                            C[mask] = weights*np.exp(-(X[mask]**2 + Y[mask]**2) / (2*sigma**2)) # / (2*np.pi*sigma**2)
+                            if weights > 0:
+                                colors = [(1, 1, 1), (1, 0, 0)]
+                                cmap =  LinearSegmentedColormap.from_list('reds', colors, N=64)
+                                vmin = 0
+                                vmax = weights
+                            else:
+                                colors = [(0, 0, 1), (1, 1, 1)]
+                                cmap =  LinearSegmentedColormap.from_list('blues', colors, N=64)
+                                vmin = weights
+                                vmax = 0                        
+                        else:
+                            weights = cDict['weights']
+                            C = weights*np.exp(-(X**2 + Y**2) / (2*sigma**2)) # / (2*np.pi*sigma**2)
+                            if weights > 0:
+                                colors = [(1, 1, 1), (1, 0, 0)]
+                                cmap =  LinearSegmentedColormap.from_list('reds', colors, N=64)
+                                vmin = 0
+                                vmax = weights
+                            else:
+                                colors = [(0, 0, 1), (1, 1, 1)]
+                                cmap =  LinearSegmentedColormap.from_list('blues', colors, N=64)
+                                vmin = weights
+                                vmax = 0                        
+                    except KeyError as ae:
+                        raise ae
+                else:
+                    pass
+            im = ax.pcolormesh(X,Y,C, cmap=cmap, vmin=vmin, vmax=vmax)
+            
+            if j == (len(pList)-1):
+                bbox = np.array(ax.get_position())
+                cax = fig.add_axes([bbox[1][0]+0.01, bbox[0][1], 0.015, (bbox[1][1]-bbox[0][1])])
+                axcb = fig.colorbar(im, cax=cax, orientation='vertical')
+                cbarlabel = r'$\epsilon_\mathrm{Y,%s}Jg_\mathrm{Y,%s}$ (pA)' % (pre,pre)
+                axcb.set_label(cbarlabel)
 
-    fig.savefig(os.path.join(spike_output_path, 'network_sketch.pdf'), dpi=300)
+            ax.set_xticks([-2., -1, 0, 1., 2.])
+            ax.set_yticks([-2., -1, 0, 1., 2.])
+
+            if i != (len(lList)-1):
+                ax.set_xticklabels([])
+            else:
+                ax.set_xlabel('x (mm)', labelpad=0)
+            if i == 0:
+                ax.set_title(post)
+            if j != 0:
+                ax.set_yticklabels([])
+            else:
+                ax.set_ylabel('{}\ny (mm)'.format(pre), labelpad=0)
+            
+            if i == 0 and j == 0:
+                ax.text(0.5, 0.95, 'B',
+                    horizontalalignment='center',
+                    verticalalignment='center',
+                    fontsize=16, fontweight='demibold',
+                    transform=fig.transFigure)
+
+
+    fig.savefig(os.path.join(spike_output_path, 'network_sketch.pdf'), dpi=300, bbox_inches='tight')
 
 
 # rasters and histograms from nest
