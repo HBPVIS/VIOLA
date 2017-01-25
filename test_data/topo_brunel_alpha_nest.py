@@ -47,7 +47,6 @@ import nest
 nest.set_verbosity('M_WARNING')
 import nest.raster_plot
 import nest.topology as tp
-import ConnPlotter as cpl
 
 import time
 import os
@@ -114,8 +113,8 @@ of the neurons.
 '''
 
 g       = 4.5  # ratio inhibitory weight/excitatory weight (before: 5.0)
-eta     = 0.7  # external rate relative to threshold rate
-epsilon = 0.05  # connection probability (before: 0.1)
+eta     = 2.0  # external rate relative to threshold rate
+epsilon = 0.2  # connection probability (before: 0.1)
 
 '''
 Definition of the number of neurons in the network.
@@ -141,7 +140,7 @@ The synaptic currents are normalized such that the amplitude of the
 PSP is J.
 '''
 
-tauSyn = 5.     # synaptic time constant in ms
+tauSyn = 0.5     # synaptic time constant in ms
 tauMem = 20.0   # time constant of membrane potential in ms
 CMem   = 250.0  # capacitance of membrane in in pF
 theta  = 20.0   # membrane threshold potential in mV
@@ -154,7 +153,7 @@ neuron_params= {"C_m":        CMem,
                 "V_reset":    0.0,
                 "V_m":        0.0,
                 "V_th":       theta}
-J      = 0.35        # postsyaptic amplitude in mV (before: 0.1)
+J      = 2.0        # postsyaptic amplitude in mV (before: 0.1)
 J_unit = ComputePSPnorm(tauMem, CMem, tauSyn)
 J_ex   = J / J_unit # amplitude of excitatory postsynaptic current
 J_in   = -g*J_ex    # amplitude of inhibitory postsynaptic current
@@ -188,7 +187,8 @@ indegrees = convergent connections with a fixed number of connections.
 '''
 
 extent_length = 4.   # in mm (layer size = extent_length x extent_length)
-sigma = 0.3          # Gaussian profile, sigma in mm
+sigma_ex = 0.3       # width of Gaussian profile of excitatory connections
+sigma_in = 0.3       # sigma in mm
 
 pos_ex = list(((random.rand(2*NE) - 0.5) * extent_length).reshape(-1, 2))
 pos_in = list(((random.rand(2*NI) - 0.5) * extent_length).reshape(-1, 2))
@@ -214,7 +214,6 @@ around the center of the sheet.
 '''
 
 N_stim = int(NE * np.pi * stim_radius**2 / extent_length**2)
-
 
 n_stim = 0
 pos_stim = []
@@ -249,7 +248,7 @@ conn_dict_ex = {
     'kernel' : {
         'gaussian' : {
             'p_center' : 1.,
-            'sigma' : sigma*0.9,
+            'sigma' : sigma_ex,
             'mean' : 0.,
             'c' : 0.,
             }
@@ -272,7 +271,7 @@ conn_dict_in = {
     'kernel' : {
         'gaussian' : {
             'p_center' : 1.,
-            'sigma' : sigma,
+            'sigma' : sigma_in,
             'mean' : 0.,
             'c' : 0.,
             }
@@ -492,6 +491,7 @@ endbuild=time.time()
 
 # # ConnPlotter test plot
 # if True:
+#     import ConnPlotter as cpl
 #     nest.CopyModel("static_synapse","STIM", {"weight":stim_weight_scale*J_ex})
 #     conn_dict_stim['synapse_model'] = 'STIM' # somehow 
 #     lList = [
