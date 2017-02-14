@@ -62,8 +62,10 @@ import matplotlib.colors as mpc
 import mpl_toolkits.mplot3d.art3d as art3d
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Patch
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d import Axes3D
 
 random.seed(123456)
@@ -710,7 +712,7 @@ Plotting.
 '''
 
 # network sketch
-if True:
+if False:
     print('Plotting network sketch')
 
     red_conn_dens = 1 # reduce connection density
@@ -805,7 +807,6 @@ if True:
     fig = plt.figure(figsize=(6.5*2,5))
     # fig.subplots_adjust(top=1., bottom=0.08, left=0., right=0.65)
     # ax = fig.gca(projection='3d')
-    from matplotlib.gridspec import GridSpec
     ax = fig.add_subplot(GridSpec(1, 1, left=0.0, right=0.45, top=0.95, bottom=0.05)[:, :], projection='3d')
     gs = GridSpec(3, 2, left=0.55, top=0.95, bottom=0.05)
 
@@ -1028,8 +1029,73 @@ if True:
         return
 
 
+    def _plot_space_histogram(gs_cell, pops_list):
+        gs_loc = gridspec.GridSpecFromSubplotSpec(1,3, gs_cell, wspace=0)
+
+        binsize=0.05
+        bins = np.arange(-2, 2+binsize, binsize)
+        xlists = []
+        for x, gid0, senders in zip([np.array(pops['IN']['layerdict']['positions'])[:, 0],
+                                     np.array(pops['EX']['layerdict']['positions'])[:, 0],
+                                     np.array(pops['STIM']['layerdict']['positions'])[:, 0]],
+                                        [pops['IN']['nodes'][0],
+                                         pops['EX']['nodes'][0],
+                                         pops['STIM']['nodes'][0]],
+                                        [pops['IN']['events']['senders'],
+                                         pops['EX']['events']['senders'],
+                                         pops['STIM']['events']['senders']]):
+            xlists += [[x[n-gid0] for n in senders]]
+
+        data = {}
+        data['IN'] = xlists[0]
+        data['EX'] = xlists[1]
+        data['STIM'] = xlists[2]
+
+        for i,pop in enumerate(pops_list):
+            ax = plt.subplot(gs_loc[0,i])
+            ax.hist(data[pop], bins=bins, histtype='step',
+                    color=pops[pop]['color'], orientation='horizontal')
+            ax.set_ylim(bins[0], bins[-1])
+            ax.set_yticklabels([])
+            ax.xaxis.set_major_locator(MaxNLocator(nbins=2, prune='upper'))
+            plt.xticks(rotation=-90)
+
+            if i==0:
+                ax.text(-0.6, 1.05, 'D', ha='left', va='bottom', fontsize=16,
+                        transform=ax.transAxes)
+            if i==len(pops_list)/2:
+                ax.set_title('spike count')
+                ax.set_xlabel('count')
+        return
+
+    def _plot_time_histogram(gs_cell, pops_list):
+        gs_loc = gridspec.GridSpecFromSubplotSpec(3,1, gs_cell, hspace=0)
+        bins = np.arange(transient, simtime+1, 1) # 1 ms bins
+        for i,pop in enumerate(pops_list):
+            ax = plt.subplot(gs_loc[i,0])
+            ax.hist(pops[pop]['events']['times'], bins=bins, histtype='step',
+                    color=pops[pop]['color'])
+            ax.set_ylim(bottom=0) # fixing only the bottom
+            ax.set_xlim(transient, simtime)
+            ax.yaxis.set_major_locator(MaxNLocator(nbins=2, prune='upper'))
+
+            if i==0:
+                ax.set_title('spike count')
+                ax.text(-0.05, 1.05, 'E', ha='left', va='bottom', fontsize=16,
+                        transform=ax.transAxes)
+            if i==len(pops_list)/2:
+                ax.set_ylabel('count')
+            if i==len(pops_list)-1:
+                ax.set_xlabel('time (ms)')
+            else:
+                ax.set_xticklabels([])
+        return
+
+
     def plot_spikes_figure():
         fig = plt.figure(figsize=(8., 8.))
+        fig.subplots_adjust(top=0.94, bottom=0.06, left=0.1, right=0.96,
+                            wspace=0.3, hspace=1.)
         gs = gridspec.GridSpec(6,5)
 
         # unsorted raster
@@ -1066,7 +1132,7 @@ if True:
         ax.set_xticks([0, ax.axis()[1]])
         ax.text(-0.25, 1.05, 'B', ha='left', fontsize=16, va='bottom',
                 transform=ax.transAxes)
-        ax.set_title('spike\ncount')
+        ax.set_title('spike count')
 
         # sorted raster
         ax = plt.subplot(gs[2:4,:4]) # sorted
@@ -1079,67 +1145,23 @@ if True:
 
 
         # spike count histogram over space
-        ax = plt.subplot(gs[2:4, 4])
-        binsize=0.05
-        bins = np.arange(-2, 2+binsize, binsize)
-        xlists = []
-        for x, gid0, senders in zip([np.array(pops['IN']['layerdict']['positions'])[:, 0],
-                                     np.array(pops['EX']['layerdict']['positions'])[:, 0],
-                                     np.array(pops['STIM']['layerdict']['positions'])[:, 0]],
-                                        [pops['IN']['nodes'][0],
-                                         pops['EX']['nodes'][0],
-                                         pops['STIM']['nodes'][0]],
-                                        [pops['IN']['events']['senders'],
-                                         pops['EX']['events']['senders'],
-                                         pops['STIM']['events']['senders']]):
-            xlists += [[x[n-gid0] for n in senders]]
-        colors_IES = [pops['IN']['color'], pops['EX']['color'],
-                      pops['STIM']['color']]
-        bottom = 0
-        for i,ev in enumerate(xlists):
-            ax.hist(xlists[i], bins=bins, histtype='step', color=colors_IES[i],
-                    orientation='horizontal', stacked=False, alpha=1,
-                    bottom=bottom)
-            ax.plot((bottom, bottom), (-extent_length/2., extent_length/2.),
-                    'k', linestyle='--') # dashed line
-            h,b = np.histogram(ev, bins)
-            bottom += np.max(h)
-
-        ax.set_xlim((0, 1.05*bottom))
-        ax.set_ylim(bins[0], bins[-1])
-        ax.set_xlabel('count')
-        ax.set_yticklabels([])
-        ax.set_xticks([0, ax.axis()[1]])
-        ax.text(-0.25, 1.05, 'D', ha='left', va='bottom', fontsize=16,
-                transform=ax.transAxes)
+        gs_cell = gs[2:4, 4]
+        pops_list = ['IN', 'EX', 'STIM'] # top to bottom
+        _plot_space_histogram(gs_cell, pops_list)
 
 
         # spike count histogram over time
-        ax = plt.subplot(gs[4:6, :4])
-        bins = np.arange(transient, simtime+1, 1)
-        bottom = 0
-        for i,ev in enumerate([pops['IN']['events']['times'],
-                               pops['EX']['events']['times'],
-                               pops['STIM']['events']['times']]):
-            ax.hist(ev, bins=bins, histtype='step', color=colors_IES[i],
-                    stacked=False, alpha=1, bottom=bottom)
-            ax.plot((transient, simtime), (bottom, bottom), 'k',
-                    linestyle='--') # dashed line
-            h,b = np.histogram(ev, bins)
-            bottom += np.max(h)
+        gs_cell = gs[4:6, :4]
+        pops_list = ['STIM', 'EX', 'IN'] # top to bottom
+        _plot_time_histogram(gs_cell, pops_list)
 
-        ax.set_ylim((0, 1.05*bottom))
-        ax.set_xlim(transient, simtime)
-        ax.set_xlabel('time (ms)')
-        ax.set_ylabel('count')
-        ax.set_title('spike count')
-        ax.text(-0.05, 1.05, 'E', ha='left', va='bottom', fontsize=16,
-                transform=ax.transAxes)
+        # legend to the bottom right
+        ax = plt.subplot(gs[4:6,4:]) # just for the legend
+        plt.axis('off')
+        ax.legend(handles, labels, loc='center', numpoints=1, markerscale=10)
+                  #bbox_to_anchor=(1.05, 0.3), borderaxespad=0.)
 
-        ax.legend(handles, labels, loc=3, numpoints=1, markerscale=10,
-                  bbox_to_anchor=(1.05, 0.3), borderaxespad=0.)
-
-        plt.tight_layout()
+        #plt.tight_layout()
 
         fig.savefig(os.path.join(spike_output_path, 'raster.pdf'), dpi=300)
         # plt.show()
