@@ -106,23 +106,22 @@ Assigning the simulation parameters to variables.
 '''
 
 dt      = 0.1    # Simulation time resolution in ms
-simtime = 1000.  # Simulation time in ms
-transient = 200. # Simulation transient, discarding spikes at times < transient 
+simtime = 2000.  # Simulation time in ms
+transient = 500. # Simulation transient, discarding spikes at times < transient
 
 '''
-Definition of the parameters crucial for asynchronous irregular firing
-of the neurons.
+Definition of the parameters crucial for the network state.
 '''
 
-g       = 4.5  # ratio inhibitory weight/excitatory weight (before: 5.0)
+g       = 4.0  # ratio inhibitory weight/excitatory weight (before: 5.0)
 eta     = 2.0  # external rate relative to threshold rate
-epsilon = 0.2  # connection probability (before: 0.1)
+epsilon = 0.1  # connection probability
 
 '''
 Definition of the number of neurons in the network.
 '''
 
-order     = 5000
+order     = 10000   # (before: 2500)
 NE        = 4*order # number of excitatory neurons
 NI        = 1*order # number of inhibitory neurons
 N_neurons = NE+NI   # number of neurons in total
@@ -155,7 +154,7 @@ neuron_params= {"C_m":        CMem,
                 "V_reset":    0.0,
                 "V_m":        0.0,
                 "V_th":       theta}
-J      = 2.0        # postsyaptic amplitude in mV (before: 0.1)
+J      = 0.6        # postsyaptic amplitude in mV (before: 0.1)
 J_unit = ComputePSPnorm(tauMem, CMem, tauSyn)
 J_ex   = J / J_unit # amplitude of excitatory postsynaptic current
 J_in   = -g*J_ex    # amplitude of inhibitory postsynaptic current
@@ -175,13 +174,12 @@ p_rate = 1000.0*nu_ex*CE
 Parameters for a spatially confined stimulus.
 '''
 
-stim_radius = 0.25      # radius of a circle in mm for location of stimulus
-mask_radius_stim = 0.3  # mask radius of stimulus in mm around each parrot neuron
-num_stim_conn = 100     # number of connections inside mask_radius_conn
-stim_start = 500.       # start time of stimulus in ms
-stim_stop = 550.        # stop time of stimulus in ms
-stim_rate = 200.        # rate of parrot neurons in Hz during stimulus activation
-stim_weight_scale = 10. # multiplied with J_ex for stimulus
+stim_radius = 0.2       # radius of a circle in mm for location of stimulus
+mask_radius_stim = 0.1  # mask radius of stimulus in mm around each parrot neuron
+num_stim_conn = 100     # number of connections inside mask_radius_stim
+stim_start = 1650.      # start time of stimulus in ms
+stim_duration = 5.      # duration of the stimulus onset in ms
+stim_rate = 5000.       # rate of parrot neurons in Hz during stimulus activation
 
 '''
 Definition of topology-specific parameters. Connection routines use fixed
@@ -189,8 +187,12 @@ indegrees = convergent connections with a fixed number of connections.
 '''
 
 extent_length = 4.   # in mm (layer size = extent_length x extent_length)
-sigma_ex = 0.3       # width of Gaussian profile of excitatory connections
-sigma_in = 0.3       # sigma in mm
+sigma_ex = 0.25      # width of Gaussian profile for excitatory connections in mm
+sigma_in = 0.3       # width of Gaussian profile for inhibitory connections in mm
+
+delay_ex_c = 0.3     # constant term for linear distance-dependent delay in mm
+delay_ex_a = 0.7     # linear term for delay in mm (for excitatory connections)
+delay_in = 1.        # constant delay for inhibitory connection in mm
 
 pos_ex = list(((random.rand(2*NE) - 0.5) * extent_length).reshape(-1, 2))
 pos_in = list(((random.rand(2*NI) - 0.5) * extent_length).reshape(-1, 2))
@@ -215,15 +217,15 @@ density of excitatory neurons. The parrot neurons are placed inside a circle
 around the center of the sheet.
 '''
 
-N_stim = int(NE * np.pi * stim_radius**2 / extent_length**2)
+N_stim_square = int(NE * (2.*stim_radius)**2/extent_length**2)
+pos_stim_square = list(((random.rand(2*N_stim_square) - 0.5) * stim_radius).reshape(-1, 2))
 
-n_stim = 0
+# discard those positions which do not fall into circle
 pos_stim = []
-while n_stim < N_stim:
-    ppos = (random.rand(2) - 0.5) * 2 * stim_radius
-    if ppos[0]**2 + ppos[1]**2 <= stim_radius**2:
-        pos_stim.append(ppos)
-        n_stim += 1
+for pos in pos_stim_square:
+    if pos[0]**2 + pos[1]**2 <= stim_radius**2:
+        pos_stim.append(pos)
+N_stim = len(pos_stim)
 
 layerdict_stim = {
     'extent' : [extent_length, extent_length],
@@ -243,8 +245,8 @@ conn_dict_ex = {
     'weights' : J_ex,
     'delays' : {
         'linear' : {
-            'c' : 1.,
-            'a' : 7.,
+            'c' : delay_ex_c,
+            'a' : delay_ex_a,
             }
         },
     'kernel' : {
@@ -265,9 +267,8 @@ conn_dict_in = {
     'allow_multapses': True,
     'weights' : J_in,
     'delays' : {
-        'linear' : {
-            'c' : 1.,
-            'a' : 7.,
+        'constant' : {
+            'value' : delay_in
             }
         },
     'kernel' : {
@@ -284,7 +285,7 @@ conn_dict_in = {
 
 conn_dict_stim = {
     'connection_type': 'divergent',
-    'weights' : stim_weight_scale * J_ex,
+    'weights' : J_ex,
     'delays' : dt,
     'mask' : {
         'circular' : {
@@ -328,7 +329,7 @@ total simulation time.
 
 nest.ResetKernel()
 nest.SetKernelStatus({"resolution": dt,
-                      "print_time": True,
+                      "print_time": False,
                       "overwrite_files": True,
                       'local_num_threads': cpu_count(),
                       'grng_seed': 234567})
@@ -414,7 +415,7 @@ External stimulus.
 '''
 
 pg_stim = nest.Create('poisson_generator', 1, {'start': stim_start,
-                                               'stop': stim_stop,
+                                               'stop': stim_start + stim_duration,
                                                'rate': stim_rate})
 
 print("Connecting devices")
