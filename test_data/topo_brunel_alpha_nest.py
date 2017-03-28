@@ -41,6 +41,9 @@ Usage:
 Importing all necessary modules for simulation, analysis and plotting.
 '''
 
+import matplotlib
+matplotlib.use('Agg')
+
 from scipy.optimize import fsolve
 
 import nest
@@ -57,6 +60,7 @@ from numpy import exp, random, zeros_like, r_
 from multiprocessing import cpu_count
 
 import json
+
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpc
 import mpl_toolkits.mplot3d.art3d as art3d
@@ -69,7 +73,6 @@ from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d import Axes3D
 
 random.seed(123456)
-
 
 '''
 Definition of functions used in this example. First, define the
@@ -714,7 +717,7 @@ Plotting.
 '''
 
 # network sketch
-if False:
+if True:
     print('Plotting network sketch')
 
     red_conn_dens = 1 # reduce connection density
@@ -859,7 +862,7 @@ if False:
          'source',
          'exc. connection',
          'inh. connection']
-    ax.legend(handles, labels, numpoints=1, loc=2, bbox_to_anchor=(0.8, 0.9),
+    ax.legend(handles, labels, numpoints=1, loc=2, bbox_to_anchor=(0.7, 0.95),
               fontsize=10)
 
     ax.view_init(elev=12, azim=-60)
@@ -971,7 +974,7 @@ if False:
     iraster = nest.raster_plot.from_device(ispikes, hist=True)
 
 # sorted raster plot:
-if False:
+if True:
     print("Plotting sorted raster plot")
 
     plt.rcParams['figure.dpi'] = 160.
@@ -1032,7 +1035,7 @@ if False:
 
 
     def _plot_space_histogram(gs_cell, pops_list):
-        gs_loc = gridspec.GridSpecFromSubplotSpec(1,3, gs_cell, wspace=0)
+        gs_loc = gridspec.GridSpecFromSubplotSpec(1,3, gs_cell, wspace=0.15)
 
         binsize=0.05
         bins = np.arange(-2, 2+binsize, binsize)
@@ -1071,7 +1074,7 @@ if False:
         return
 
     def _plot_time_histogram(gs_cell, pops_list):
-        gs_loc = gridspec.GridSpecFromSubplotSpec(3,1, gs_cell, hspace=0)
+        gs_loc = gridspec.GridSpecFromSubplotSpec(3,1, gs_cell, hspace=0.15)
         bins = np.arange(transient, simtime+1, 1) # 1 ms bins
         for i,pop in enumerate(pops_list):
             ax = plt.subplot(gs_loc[i,0])
@@ -1079,7 +1082,7 @@ if False:
                     color=pops[pop]['color'])
             ax.set_ylim(bottom=0) # fixing only the bottom
             ax.set_xlim(transient, simtime)
-            ax.yaxis.set_major_locator(MaxNLocator(nbins=2, prune='upper'))
+            ax.yaxis.set_major_locator(MaxNLocator(nbins=3, prune='upper'))
 
             if i==0:
                 ax.set_title('spike count')
@@ -1096,7 +1099,7 @@ if False:
 
     def plot_spikes_figure():
         fig = plt.figure(figsize=(8., 8.))
-        fig.subplots_adjust(top=0.94, bottom=0.06, left=0.1, right=0.96,
+        fig.subplots_adjust(top=0.94, bottom=0.06, left=0.11, right=0.96,
                             wspace=0.3, hspace=1.)
         gs = gridspec.GridSpec(6,5)
 
@@ -1113,7 +1116,7 @@ if False:
 
         # take handles and labels from unsorted raster, but place legend to
         # bottom right corner
-        handles, labels = ax.get_legend_handles_labels()
+        #handles, labels = ax.get_legend_handles_labels()
 
 
         # spike count histogram over unit
@@ -1160,8 +1163,13 @@ if False:
         # legend to the bottom right
         ax = plt.subplot(gs[4:6,4:]) # just for the legend
         plt.axis('off')
-        ax.legend(handles, labels, loc='center', numpoints=1, markerscale=10)
-                  #bbox_to_anchor=(1.05, 0.3), borderaxespad=0.)
+        handles = [Patch(color=pops['STIM']['color']),
+                   Patch(color=pops['EX']['color']),
+                   Patch(color=pops['IN']['color'])]
+        labels = ['STIM',
+                  'EX',
+                  'IN']
+        ax.legend(handles, labels, loc='center')
 
         #plt.tight_layout()
 
