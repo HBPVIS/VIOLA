@@ -791,7 +791,7 @@ Visu.Renderer3D = function(panel, data) {
       new THREE.MeshLambertMaterial({ color: 0x404040 }));
     this.plane.position.set(-this.xSize * this.boxSize - 100, 0, 0);
     this.plane.lookAt(this.origin);
-    this.layersScene.add(this.plane);
+    //this.layersScene.add(this.plane); //switched off by default
 
     this.plane2 = new THREE.Mesh(
       new THREE.PlaneBufferGeometry((2 * this.boxSize + 2) * this.xSize,
@@ -799,7 +799,7 @@ Visu.Renderer3D = function(panel, data) {
       new THREE.MeshLambertMaterial({ color: 0x404040 }));
     this.plane2.position.set(0, 0, -this.ySize * this.boxSize - 100);
     this.plane2.lookAt(this.origin);
-    this.layersScene.add(this.plane2);
+    //this.layersScene.add(this.plane2);
   }
 
   //Lights
