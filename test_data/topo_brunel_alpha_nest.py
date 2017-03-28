@@ -261,7 +261,6 @@ conn_dict_ex = {
             'c' : 0.,
             }
         },
-    'mask' : {'circular' : {'radius' : 2.} },
     'number_of_connections' : CE,
     }
 
@@ -283,7 +282,6 @@ conn_dict_in = {
             'c' : 0.,
             }
         },
-    'mask' : {'circular' : {'radius' : 2.} },
     'number_of_connections' : CI,
     }
 
@@ -1008,10 +1006,6 @@ if True:
 
                 X = r_[X, zeros_like(t) + pos]
 
-        # # dilute
-        # X = X[np.arange(0, len(X), dilute)]
-        # T = T[np.arange(0, len(T), dilute)]
-
         ax.plot(T[::dilute], X[::dilute], marker, markersize=1., color=color, label=poplabel,
                 rasterized=True)
         return
@@ -1114,11 +1108,6 @@ if True:
         ax.text(-0.05, 1.05, 'A', fontsize=16, ha='left', va='bottom',
                 transform=ax.transAxes)
 
-        # take handles and labels from unsorted raster, but place legend to
-        # bottom right corner
-        #handles, labels = ax.get_legend_handles_labels()
-
-
         # spike count histogram over unit
         ax = plt.subplot(gs[:2, 4])
         allnodes = np.array(nodes_ex + nodes_in + nodes_stim)
@@ -1171,9 +1160,6 @@ if True:
                   'IN']
         ax.legend(handles, labels, loc='center')
 
-        #plt.tight_layout()
-
         fig.savefig(os.path.join(spike_output_path, 'raster.pdf'), dpi=300)
-        # plt.show()
 
     plot_spikes_figure()
