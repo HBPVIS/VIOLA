@@ -138,8 +138,8 @@ Visu.Renderer3D = function(panel, data) {
   this.vDisplacement = 1;
 
   this.cameraDistance = 600;
-  this.cameraAngleHorizontal = 40;
-  this.cameraAngleVertical = 0;
+  this.cameraAngleHorizontal = 50;
+  this.cameraAngleVertical = 30;
   this.cameraZoom = 50;
 
   this.maxFov = 130;
@@ -1743,8 +1743,8 @@ Visu.Renderer3D.prototype = {
 
   resetCamera: function() {
     this.cameraDistance = 600;
-    this.cameraAngleHorizontal = 40;
-    this.cameraAngleVertical = 0;
+    this.cameraAngleHorizontal = 50;
+    this.cameraAngleVertical = 30;
     this.cameraZoom = 50;
 
     this.updateCameraPosition();
