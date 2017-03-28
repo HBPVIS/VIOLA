@@ -1927,7 +1927,6 @@ Visu.Renderer3D.prototype = {
 
 
   updatePlane: function(index, k) {
-
     if (this.displayPop[k]) {
 
       if (this.data.dataType == "binned") {
@@ -1942,8 +1941,9 @@ Visu.Renderer3D.prototype = {
           for (var j = 0; j < this.ySize; j++) {
             logData = Math.log(1 +
               this.data.getScaledValue(currData[i * this.ySize + j])) / logMax;
-            rData = this.data.getScaledValue(currData[i * this.ySize + j]) /
-              this.data.maxSpikesAmount;
+            // third root of scaled spike count values
+            rData = Math.pow(this.data.getScaledValue(currData[i * this.ySize + j]) /
+              this.data.maxSpikesCutoff, 1./3.);
 
             if (rData > 0) {
               this.voxels[k][j + i * this.ySize].visible = true;

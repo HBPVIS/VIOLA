@@ -110,11 +110,7 @@ Visu.Renderer2D = function(panel, data, name) {
 Visu.Renderer2D.prototype = {
 
   colorRect: function(d) {
-    // upper limit for spike count,
-    // must be defined equally in drawMiniLegend for color bar!
-    var limit = 0.3 * this.data.maxSpikesAmount;
-
-    d = d / limit;
+    d = d / this.data.maxSpikesCutoff;
     if (d < 0.33)
       return "rgb(" + Math.round(3 * d * 255) + ",0,0)";
     else if (d < 0.66)
@@ -122,7 +118,7 @@ Visu.Renderer2D.prototype = {
     else if (d < 1)
       return "rgb(255,255," + Math.round(255 * (d - 0.66) * 3) + ")";
     else
-      return "rgb(255,255,255)"; // white above limit
+      return "rgb(255,255,255)"; // white above cutoff limit
   },
 
   disableDrag: function(v) {
@@ -191,10 +187,7 @@ Visu.Renderer2D.prototype = {
     // color bar should actually be open to the right
     this.mCtxL.clearRect(0, 0, this.miniLW, this.miniLH);
 
-    // upper limit for spike count,
-    // must be defined equally in colorRect!
-    var limit = 0.3 * this.data.maxSpikesAmount;
-
+    var limit = this.data.maxSpikesCutoff;
     var sp = [Math.round(this.data.getUnscaledValue(limit / 3)),
               Math.round(this.data.getUnscaledValue(limit * 2/3)),
               Math.round(this.data.getUnscaledValue(limit))];

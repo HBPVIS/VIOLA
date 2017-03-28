@@ -231,6 +231,10 @@ Visu.Data.prototype = {
       };
     };
 
+   // 30% of maxSpikesAmount is used as cut-off limit
+   // for color scales and voxel sizes
+   this.maxSpikesCutoff = 0.3 * this.maxSpikesAmount;
+
     for (var i = 0; i < this.timestamps; i++) {
       if (this.totalDatasets[s][i] > this.maxTotalAmount)
         this.maxTotalAmount = this.totalDatasets[s][i];
