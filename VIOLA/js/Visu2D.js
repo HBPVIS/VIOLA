@@ -219,7 +219,7 @@ Visu.Renderer2D.prototype = {
     this.mCtxL.fillStyle = grd;
     this.mCtxL.fillRect(10, 1, this.miniLW - 20, 8);
     this.mCtxL.fillStyle = "black";
-    this.mCtxL.font = "12px serif";
+    this.mCtxL.font = "12px sans-serif";
     this.mCtxL.textBaseline = "top";
     this.mCtxL.fillText(0, 10 - this.mCtxL.measureText(0).width / 2, 12);
     this.mCtxL.fillRect(10, 10, 1, 2);
@@ -240,7 +240,7 @@ Visu.Renderer2D.prototype = {
                                    + unit[uToUse[2]]).width / 2),
                         12);
     this.mCtxL.fillRect(this.miniLW - 10, 0, 1, 12);
-    this.mCtxL.font = "16px serif";
+    this.mCtxL.font = "16px sans-serif";
     this.mCtxL.textBaseline = "bottom";
     this.mCtxL.fillText("Bin-wise spike count (1/s)",
                         this.miniLW / 2 -
@@ -249,14 +249,14 @@ Visu.Renderer2D.prototype = {
 
   drawMiniLegends: function() {
     for (var c = 0; c < this.data.nLayers; c++) {
-      this.mCtx[c].font = "16px serif";
+      this.mCtx[c].font = "16px sans-serif";
       this.mCtx[c].textBaseline = "top";
       this.mCtx[c].fillStyle = "black";
       this.mCtx[c].fillText(data.layerNames[c],
                             (this.miniCW - this.mCtx[c]
                                .measureText(this.data.layerNames[c]).width) / 2,
                             2);
-      this.mCtx[c].font = "12px serif";
+      this.mCtx[c].font = "12px sans-serif";
       this.mCtx[c].textBaseline = "middle";
       this.mCtx[c].fillText(-this.data.ySize / 2,
                             this.offsetW - 2 - this.mCtx[c]

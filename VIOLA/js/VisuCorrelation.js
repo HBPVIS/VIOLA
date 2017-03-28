@@ -217,13 +217,13 @@ Visu.Correlation.prototype = {
     //Top (Title)
     this.ctx.fillStyle = "black";
     this.ctx.textBaseline = "middle";
-    this.ctx.font = "20px serif";
+    this.ctx.font = "20px sans-serif";
     this.ctx.fillText("Cross correlation",
                       this.canvasW / 2 -
                         this.ctx.measureText("Cross correlation").width / 2,
                       this.paddingH / 2);
 
-    this.ctx.font = "12px serif";
+    this.ctx.font = "12px sans-serif";
     this.ctx.textBaseline = "middle";
 
     //Left (distance)

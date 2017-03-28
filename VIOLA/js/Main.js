@@ -1057,7 +1057,7 @@ function drawIndex() {
   timerC.fillStyle = "#333333";
   timerC.fillRect(0, 0, timerW, barH);
   timerC.fillStyle = "white";
-  timerC.font = "10px serif";
+  timerC.font = "10px sans-serif";
   timerC.textBaseline = "top";
   timerC.fillText(data.currTime + "/" + data.simulationLength + " ms", 10, 0);
 };
