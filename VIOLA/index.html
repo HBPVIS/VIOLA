@@ -41,6 +41,7 @@
       <ul id="paramList" class="list-nostyle">
         <li class="spacer"></li>
         <li class="paramListSubtitle">Neural network simulation</li>
+        <!-- using default values from current test data-->
         <li>Number of populations
           <input id="popNumber" type="number" value="3">
         </li>
@@ -50,11 +51,15 @@
         </li>
         <li>Filenames of spike data</li>
         <li>
-          <textarea id="spikesFiles" rows="1" cols="100"></textarea>
+          <textarea id="spikesFiles"
+                    wrap="hard"
+                    rows="3"
+                    cols="100">binned_sprates_rs_IN.dat,binned_sprates_rs_EX.dat,binned_sprates_rs_STIM.dat
+          </textarea>
         </li>
         <li>Number of timestamps to store
           <input style="max-width:60px" id="timestampsNumber" type="number"
-                 value="900">
+                 value="1500">
         </li>
         <li>Resolution of time series (ms)
           <input id="resNumber" type="number" value="1">
@@ -74,7 +79,8 @@
           <textarea id="popColors"
                     wrap="hard"
                     rows="2"
-                    cols="100">#FF0000,#8000FF,#2E2E2E</textarea>
+                    cols="100">#b22222,#0000cd,#696969
+          </textarea>
         </li>
         <li>Number of timestamps for timeline
           <input id="zTimeSize" type="number" value="100">
