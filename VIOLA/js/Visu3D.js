@@ -1753,7 +1753,7 @@ Visu.Renderer3D.prototype = {
   },
 
   handleKeyDown: function(e) {
-    var key = e.keyCode
+    var key = e.keyCode;
     for (var k in this.keys) {
       if (key == this.keys[k]) {
         e.preventDefault();
@@ -1764,7 +1764,7 @@ Visu.Renderer3D.prototype = {
   },
 
   handleKeyUp: function(e) {
-    var key = e.keyCode
+    var key = e.keyCode;
     for (var k in this.keys) {
       if (key == this.keys[k]) {
         e.preventDefault();
@@ -1898,21 +1898,33 @@ Visu.Renderer3D.prototype = {
     this.lfpTexture.needsUpdate = true;
   },
 
+
   colorLFP: function(v) {
-    //range from "0 to 2" if all data inside [-lfpWidth,+lfpWidth]
-    var value = v / this.data.lfpWidth + 1;
-    if (value < 0)
-      value = 0;
-    if (value > 2)
-      value = 2;
-    if (value < 1) {
-      return "rgb(255," + Math.floor(value * 255) + "," +
-        Math.floor(value * 255) + ")";
-    } else {
-      return "rgb(" + Math.floor(255 * (1 - (value - 1))) + "," +
-        Math.floor(255 * (1 - (value - 1))) + ",255)";
+    // diverging color map
+
+    // rgb colors
+    var cNeg = [0, 102, 102]; // blue-green
+    var c0 = [255, 255, 255]; // white
+    var cPos = [204, 102, 0]; // orange
+
+    // data mainly in [-lfpWidth,+lfpWidth] with lfpWidth=2*stdDev,
+    // now scaled and bound to [-1, 1]
+    var val = v / this.data.lfpWidth;
+    if (val < -1) val = -1;
+    if (val > 1) val = 1;
+
+    if (val < 0) { // linear scaling between cNeg and c0
+        return "rgb(" + Math.floor(cNeg[0]-(c0[0]-cNeg[0])*val) + "," +
+                        Math.floor(cNeg[1]-(c0[1]-cNeg[1])*val) + "," +
+                        Math.floor(cNeg[2]-(c0[2]-cNeg[2])*val) + ")";
+    }
+    else { // linear scaling between c0 and cPos
+        return "rgb(" + Math.floor(c0[0]+(cPos[0]-c0[0])*val) + "," +
+                        Math.floor(c0[1]+(cPos[1]-c0[1])*val) + "," +
+                        Math.floor(c0[2]+(cPos[2]-c0[2])*val) + ")";
     }
   },
+
 
   updatePlane: function(index, k) {
 
