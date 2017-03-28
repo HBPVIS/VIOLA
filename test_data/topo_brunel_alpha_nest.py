@@ -113,15 +113,15 @@ transient = 500. # Simulation transient, discarding spikes at times < transient
 Definition of the parameters crucial for the network state.
 '''
 
-g       = 4.0  # ratio inhibitory weight/excitatory weight (before: 5.0)
-eta     = 2.0  # external rate relative to threshold rate
+g       = 4.   # ratio inhibitory weight/excitatory weight (before: 5.0)
+eta     = 2.   # external rate relative to threshold rate
 epsilon = 0.1  # connection probability
 
 '''
 Definition of the number of neurons in the network.
 '''
 
-order     = 10000   # (before: 2500)
+order     = 5000   # (before: 2500)
 NE        = 4*order # number of excitatory neurons
 NI        = 1*order # number of inhibitory neurons
 N_neurons = NE+NI   # number of neurons in total
@@ -141,18 +141,19 @@ The synaptic currents are normalized such that the amplitude of the
 PSP is J.
 '''
 
-tauSyn = 0.5     # synaptic time constant in ms
-tauMem = 20.0   # time constant of membrane potential in ms
-CMem   = 250.0  # capacitance of membrane in in pF
-theta  = 20.0   # membrane threshold potential in mV
+tauSyn = 0.5    # synaptic time constant in ms
+tauMem = 20.    # time constant of membrane potential in ms
+CMem   = 250.   # capacitance of membrane in in pF
+theta  = 20.    # membrane threshold potential in mV
+tRef = 2.       # refractory period in ms
 neuron_params= {"C_m":        CMem,
                 "tau_m":      tauMem,
                 "tau_syn_ex": tauSyn,
                 "tau_syn_in": tauSyn,
-                "t_ref":      2.0,
-                "E_L":        0.0,
-                "V_reset":    0.0,
-                "V_m":        0.0,
+                "t_ref":      tRef,
+                "E_L":        0.,
+                "V_reset":    0.,
+                "V_m":        0.,
                 "V_th":       theta}
 J      = 0.6        # postsyaptic amplitude in mV (before: 0.1)
 J_unit = ComputePSPnorm(tauMem, CMem, tauSyn)
@@ -168,7 +169,7 @@ in-degree CE and converted to Hz by multiplication by 1000.
 
 nu_th  = (theta * CMem) / (J_ex*CE*exp(1)*tauMem*tauSyn)
 nu_ex  = eta*nu_th
-p_rate = 1000.0*nu_ex*CE
+p_rate = 1000.*nu_ex*CE
 
 '''
 Parameters for a spatially confined stimulus.
@@ -192,7 +193,7 @@ sigma_in = 0.3       # width of Gaussian profile for inhibitory connections in m
 
 delay_ex_c = 0.3     # constant term for linear distance-dependent delay in mm
 delay_ex_a = 0.7     # linear term for delay in mm (for excitatory connections)
-delay_in = 1.        # constant delay for inhibitory connection in mm
+delay_in = 1.        # constant delay for inhibitory connections in mm
 
 pos_ex = list(((random.rand(2*NE) - 0.5) * extent_length).reshape(-1, 2))
 pos_in = list(((random.rand(2*NI) - 0.5) * extent_length).reshape(-1, 2))
@@ -244,7 +245,7 @@ conn_dict_ex = {
     'allow_multapses': True,
     'weights' : J_ex,
     'delays' : {
-        'linear' : {
+        'linear' : { # p(d) = c + a * d, d is distance
             'c' : delay_ex_c,
             'a' : delay_ex_a,
             }
@@ -318,7 +319,7 @@ if not os.path.isdir(spike_output_path):
 else:
     for fil in os.listdir(spike_output_path):
         os.remove(os.path.join(spike_output_path, fil))
-    
+
 '''
 Reset the simulation kernel.
 Configuration of the simulation kernel by the previously defined time
@@ -970,7 +971,7 @@ if False:
     iraster = nest.raster_plot.from_device(ispikes, hist=True)
 
 # sorted raster plot:
-if True:
+if False:
     print("Plotting sorted raster plot")
 
     plt.rcParams['figure.dpi'] = 160.
