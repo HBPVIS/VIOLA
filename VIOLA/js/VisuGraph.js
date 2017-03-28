@@ -240,7 +240,7 @@ Visu.Graph.prototype = {
 
     //Simulation time display
     this.ctx.textBaseline = "top";
-    this.ctx.font = "12px serif";
+    this.ctx.font = "12px sans-serif";
     this.ctx.fillRect(0,
                       0,
                       this.ctx.measureText(this.data.simulationLength +
@@ -279,7 +279,7 @@ Visu.Graph.prototype = {
 
   drawLegend: function() {
     //Draw legend
-    this.ctxL.font = "12px serif";
+    this.ctxL.font = "12px sans-serif";
     this.ctxL.textBaseline = "middle";
     for (var i = 0; i < this.data.nLayers; i++) {
       this.ctxL.fillStyle = this.data.layerColors[i];
@@ -301,7 +301,7 @@ Visu.Graph.prototype = {
 
     this.ctxT.fillStyle = "black";
 
-    this.ctxT.font = "12px serif";
+    this.ctxT.font = "12px sans-serif";
     this.ctxT.textBaseline = "middle";
 
     this.ctxT.fillText("Delay (ms)",
@@ -368,7 +368,7 @@ Visu.Graph.prototype = {
         sp[i] = Math.floor(sp[i]);
     };
 
-    this.ctxA.font = "10px serif";
+    this.ctxA.font = "10px sans-serif";
     this.ctxA.textBaseline = "middle";
     // this.ctxA.fillStyle="white";
     this.ctxA.clearRect(0, 0, 30, this.svgH);
@@ -398,7 +398,7 @@ Visu.Graph.prototype = {
     this.ctxA.rotate(-Math.PI / 2);
     this.ctxA.translate(-this.svgH, 0);
     this.ctxA.textBaseline = "middle";
-    this.ctxA.font = "12px serif";
+    this.ctxA.font = "12px sans-serif";
     this.ctxA.fillText("Mean spike count (1/s)",
                        3 * this.svgH / 4 -
                          this.ctxA.measureText("Mean spike count (1/s)").width /

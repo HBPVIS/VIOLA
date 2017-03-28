@@ -271,7 +271,7 @@ function generate3Dparams() {
         'onchange="r3D.toggleSumDisplay(this.checked)">Hide</li>' +
       '<li><input id="sumScale" type="number" value="10" style="width:40px" ' +
         'onchange="r3D.setSumScale(this.value)">Scale</li>' +
-      '<li><input type="checkbox" checked ' +
+      '<li><input type="checkbox" unchecked ' +
         'onchange="r3D.toggleSumBackground(this.checked)">Background</li>' +
       '<li><input id="sumScale" type="number" value="1" ' +
         'style="width:40px" onchange="r3D.setBackgroundScale(this.value)">' +
@@ -1057,7 +1057,7 @@ function drawIndex() {
   timerC.fillStyle = "#333333";
   timerC.fillRect(0, 0, timerW, barH);
   timerC.fillStyle = "white";
-  timerC.font = "10px serif";
+  timerC.font = "10px sans-serif";
   timerC.textBaseline = "top";
   timerC.fillText(data.currTime + "/" + data.simulationLength + " ms", 10, 0);
 };

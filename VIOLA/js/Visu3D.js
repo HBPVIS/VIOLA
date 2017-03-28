@@ -439,7 +439,9 @@ Visu.Renderer3D = function(panel, data) {
     this.timelineBoundingBox = new THREE.Mesh(new THREE.BufferGeometry()
       .fromGeometry(new THREE.BoxGeometry(1, 1, 1))
       , new THREE.MeshLambertMaterial({ color: 0x808080, transparent: true, opacity: 0.2, depthWrite: false }));
-    // The reference size for the timeline is 40, so we put 38 = 40 - 2    this.timelineBoundingBox.scale.set(5 * this.xSize, 5 * this.ySize, 200 * (this.zTimeSize - 2) / 38);
+    // The reference size for the timeline is 40, so we put 38 = 40 - 2
+    //this.timelineBoundingBox.scale.set(5 * this.xSize, 5 * this.ySize, 200 * (this.zTimeSize - 2) / 38);
+
     this.timelineScene.add(this.timelineBoundingBox);
 
     //Scales for timeline
@@ -508,7 +510,7 @@ Visu.Renderer3D = function(panel, data) {
     this.maxXTexture.minFilter = THREE.NearestFilter;
     this.maxXMaterial = new THREE.SpriteMaterial({ map: this.maxXTexture,
                                                    depthTest: false });
-    this.maxXctx.font = "20px serif";
+    this.maxXctx.font = "20px sans-serif";
     this.maxXctx.fillStyle = "black";
     this.maxXctx.textBaseline = "middle";
     this.maxXctx.fillText(this.data.xSize / 2,
@@ -524,7 +526,7 @@ Visu.Renderer3D = function(panel, data) {
     this.minXTexture.minFilter = THREE.NearestFilter;
     this.minXMaterial = new THREE.SpriteMaterial({ map: this.minXTexture,
                                                    depthTest: false });
-    this.minXctx.font = "20px serif";
+    this.minXctx.font = "20px sans-serif";
     this.minXctx.fillStyle = "black";
     this.minXctx.textBaseline = "middle";
     this.minXctx.fillText(-this.data.xSize / 2,
@@ -540,7 +542,7 @@ Visu.Renderer3D = function(panel, data) {
     this.maxYTexture.minFilter = THREE.NearestFilter;
     this.maxYMaterial = new THREE.SpriteMaterial({ map: this.maxYTexture,
                                                    depthTest: false });
-    this.maxYctx.font = "20px serif";
+    this.maxYctx.font = "20px sans-serif";
     this.maxYctx.fillStyle = "black";
     this.maxYctx.textBaseline = "middle";
     this.maxYctx.fillText(this.data.ySize / 2,
@@ -556,7 +558,7 @@ Visu.Renderer3D = function(panel, data) {
     this.minYTexture.minFilter = THREE.NearestFilter;
     this.minYMaterial = new THREE.SpriteMaterial({ map: this.minYTexture,
                                                    depthTest: false });
-    this.minYctx.font = "20px serif";
+    this.minYctx.font = "20px sans-serif";
     this.minYctx.fillStyle = "black";
     this.minYctx.textBaseline = "middle";
     this.minYctx.fillText(-this.data.ySize / 2,
@@ -572,7 +574,7 @@ Visu.Renderer3D = function(panel, data) {
     this.xTexture.minFilter = THREE.NearestFilter;
     this.xMaterial = new THREE.SpriteMaterial({ map: this.xTexture,
                                                 depthTest: false });
-    this.xctx.font = "20px serif";
+    this.xctx.font = "20px sans-serif";
     this.xctx.fillStyle = "black";
     this.xctx.textBaseline = "middle";
     this.xctx.fillText("x(mm)", 30 - this.xctx.measureText("x(mm)")
@@ -588,7 +590,7 @@ Visu.Renderer3D = function(panel, data) {
     this.yMaterial = new THREE.SpriteMaterial({ map: this.yTexture,
                                                 depthTest: false,
                                                 rotation: Math.PI / 2 });
-    this.yctx.font = "20px serif";
+    this.yctx.font = "20px sans-serif";
     this.yctx.fillStyle = "black";
     this.yctx.textBaseline = "middle";
     this.yctx.fillText("y(mm)", 30 - this.yctx.measureText("y(mm)")
@@ -603,7 +605,7 @@ Visu.Renderer3D = function(panel, data) {
     this.tTexture.minFilter = THREE.NearestFilter;
     this.tMaterial = new THREE.SpriteMaterial({ map: this.tTexture,
                                                 depthTest: false });
-    this.tctx.font = "20px serif";
+    this.tctx.font = "20px sans-serif";
     this.tctx.fillStyle = "black";
     this.tctx.textBaseline = "middle";
     this.tctx.fillText("t(ms)", 50 - this.tctx.measureText("t(ms)")
@@ -618,7 +620,7 @@ Visu.Renderer3D = function(panel, data) {
     this.tm40Texture.minFilter = THREE.NearestFilter;
     this.tm40Material = new THREE.SpriteMaterial({ map: this.tm40Texture,
                                                    depthTest: false });
-    this.tm40ctx.font = "20px serif";
+    this.tm40ctx.font = "20px sans-serif";
     this.tm40ctx.fillStyle = "black";
     this.tm40ctx.textBaseline = "middle";
     this.tm40ctx.fillText(Math.round(-this.zTimeSize * this.data.resolution *
@@ -637,7 +639,7 @@ Visu.Renderer3D = function(panel, data) {
     this.tm80Texture.minFilter = THREE.NearestFilter;
     this.tm80Material = new THREE.SpriteMaterial({ map: this.tm80Texture,
                                                    depthTest: false });
-    this.tm80ctx.font = "20px serif";
+    this.tm80ctx.font = "20px sans-serif";
     this.tm80ctx.fillStyle = "black";
     this.tm80ctx.textBaseline = "middle";
     this.tm80ctx.fillText(Math.round(-this.zTimeSize * this.data.resolution *
@@ -656,7 +658,7 @@ Visu.Renderer3D = function(panel, data) {
     this.t40Texture.minFilter = THREE.NearestFilter;
     this.t40Material = new THREE.SpriteMaterial({ map: this.t40Texture,
                                                   depthTest: false });
-    this.t40ctx.font = "20px serif";
+    this.t40ctx.font = "20px sans-serif";
     this.t40ctx.fillStyle = "black";
     this.t40ctx.textBaseline = "middle";
     this.t40ctx.fillText(Math.round(this.zTimeSize * this.data.resolution *
@@ -675,7 +677,7 @@ Visu.Renderer3D = function(panel, data) {
     this.t80Texture.minFilter = THREE.NearestFilter;
     this.t80Material = new THREE.SpriteMaterial({ map: this.t80Texture,
                                                   depthTest: false });
-    this.t80ctx.font = "20px serif";
+    this.t80ctx.font = "20px sans-serif";
     this.t80ctx.fillStyle = "black";
     this.t80ctx.textBaseline = "middle";
     this.t80ctx.fillText(Math.round(this.zTimeSize * this.data.resolution *
@@ -791,7 +793,7 @@ Visu.Renderer3D = function(panel, data) {
       new THREE.MeshLambertMaterial({ color: 0x404040 }));
     this.plane.position.set(-this.xSize * this.boxSize - 100, 0, 0);
     this.plane.lookAt(this.origin);
-    this.layersScene.add(this.plane);
+    //this.layersScene.add(this.plane); //switched off by default
 
     this.plane2 = new THREE.Mesh(
       new THREE.PlaneBufferGeometry((2 * this.boxSize + 2) * this.xSize,
@@ -799,7 +801,7 @@ Visu.Renderer3D = function(panel, data) {
       new THREE.MeshLambertMaterial({ color: 0x404040 }));
     this.plane2.position.set(0, 0, -this.ySize * this.boxSize - 100);
     this.plane2.lookAt(this.origin);
-    this.layersScene.add(this.plane2);
+    //this.layersScene.add(this.plane2);
   }
 
   //Lights
@@ -1450,7 +1452,7 @@ Visu.Renderer3D.prototype = {
 
   renderOverlay: function() {
     this.overlay.clearRect(0, 0, this.rendererW, this.rendererH);
-    this.overlay.font = "15px serif";
+    this.overlay.font = "15px sans-serif";
     this.overlay.textBaseline = "top";
     this.overlay.fillStyle = "black";
 
@@ -1473,7 +1475,7 @@ Visu.Renderer3D.prototype = {
 
     // Layer names
     if (this.showNames && this.visu == "layers") {
-      this.overlay.font = "30px serif";
+      this.overlay.font = "30px sans-serif";
       this.overlay.textBaseline = "bottom";
       this.overlay.strokeStyle = "black";
       this.overlay.lineWidth = 1;
@@ -1751,7 +1753,7 @@ Visu.Renderer3D.prototype = {
   },
 
   handleKeyDown: function(e) {
-    var key = e.keyCode
+    var key = e.keyCode;
     for (var k in this.keys) {
       if (key == this.keys[k]) {
         e.preventDefault();
@@ -1762,7 +1764,7 @@ Visu.Renderer3D.prototype = {
   },
 
   handleKeyUp: function(e) {
-    var key = e.keyCode
+    var key = e.keyCode;
     for (var k in this.keys) {
       if (key == this.keys[k]) {
         e.preventDefault();
@@ -1896,21 +1898,33 @@ Visu.Renderer3D.prototype = {
     this.lfpTexture.needsUpdate = true;
   },
 
+
   colorLFP: function(v) {
-    //range from "0 to 2" if all data inside [-lfpWidth,+lfpWidth]
-    var value = v / this.data.lfpWidth + 1;
-    if (value < 0)
-      value = 0;
-    if (value > 2)
-      value = 2;
-    if (value < 1) {
-      return "rgb(255," + Math.floor(value * 255) + "," +
-        Math.floor(value * 255) + ")";
-    } else {
-      return "rgb(" + Math.floor(255 * (1 - (value - 1))) + "," +
-        Math.floor(255 * (1 - (value - 1))) + ",255)";
+    // diverging color map
+
+    // rgb colors
+    var cNeg = [0, 102, 102]; // blue-green
+    var c0 = [255, 255, 255]; // white
+    var cPos = [204, 102, 0]; // orange
+
+    // data mainly in [-lfpWidth,+lfpWidth] with lfpWidth=2*stdDev,
+    // now scaled and bound to [-1, 1]
+    var val = v / this.data.lfpWidth;
+    if (val < -1) val = -1;
+    if (val > 1) val = 1;
+
+    if (val < 0) { // linear scaling between cNeg and c0
+        return "rgb(" + Math.floor(cNeg[0]-(c0[0]-cNeg[0])*val) + "," +
+                        Math.floor(cNeg[1]-(c0[1]-cNeg[1])*val) + "," +
+                        Math.floor(cNeg[2]-(c0[2]-cNeg[2])*val) + ")";
+    }
+    else { // linear scaling between c0 and cPos
+        return "rgb(" + Math.floor(c0[0]+(cPos[0]-c0[0])*val) + "," +
+                        Math.floor(c0[1]+(cPos[1]-c0[1])*val) + "," +
+                        Math.floor(c0[2]+(cPos[2]-c0[2])*val) + ")";
     }
   },
+
 
   updatePlane: function(index, k) {
 
