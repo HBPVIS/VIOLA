@@ -179,12 +179,19 @@ Visu.Renderer2D.prototype = {
           };
         };
       };
+      // time counter
+      if (c == 0){
+        this.mCtx[c].fillStyle = "white";
+        this.mCtx[c].fillText(index + "/" + this.data.simulationLength + " ms",
+                            this.offsetW + 2,
+                            this.offsetH + 15);
+       };
     };
   },
 
   drawMiniLegend: function() {
 
-    // color bar should actually be open to the right
+    // TODO color bar should actually be open to the right
     this.mCtxL.clearRect(0, 0, this.miniLW, this.miniLH);
 
     var limit = this.data.maxSpikesCutoff;
