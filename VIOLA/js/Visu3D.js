@@ -1902,10 +1902,10 @@ Visu.Renderer3D.prototype = {
   colorLFP: function(v) {
     // diverging color map
 
-    // rgb colors
-    var cNeg = [0, 102, 102]; // blue-green
+    // rgb colors, currently using PRGn color map
+    var cNeg = [64, 0, 75]; // dark purple
     var c0 = [255, 255, 255]; // white
-    var cPos = [204, 102, 0]; // orange
+    var cPos = [0, 68, 27]; // dark green
 
     // data mainly in [-lfpWidth,+lfpWidth] with lfpWidth=2*stdDev,
     // now scaled and bound to [-1, 1]
