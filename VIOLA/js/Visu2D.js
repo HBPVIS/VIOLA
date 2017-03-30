@@ -182,9 +182,10 @@ Visu.Renderer2D.prototype = {
       // time counter
       if (c == 0){
         this.mCtx[c].fillStyle = "white";
-        this.mCtx[c].fillText(index + "/" + this.data.simulationLength + " ms",
-                            this.offsetW + 2,
-                            this.offsetH + 15);
+        this.mCtx[c].fillText(this.data.currTime + "/" +
+                                this.data.simulationLength + " ms",
+                              this.offsetW + 2,
+                              this.offsetH + 15);
        };
     };
   },
