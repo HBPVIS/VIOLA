@@ -221,7 +221,7 @@ around the center of the sheet.
 '''
 
 N_stim_square = int(NE * (2.*stim_radius)**2/extent_length**2)
-pos_stim_square = list(((random.rand(2*N_stim_square) - 0.5) * stim_radius).reshape(-1, 2))
+pos_stim_square = list(((random.rand(2*N_stim_square) - 0.5) * 2.*stim_radius).reshape(-1, 2))
 
 # discard those positions which do not fall into circle
 pos_stim = []
