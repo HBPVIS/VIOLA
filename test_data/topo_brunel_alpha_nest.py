@@ -65,7 +65,6 @@ import matplotlib.colors as mpc
 import mpl_toolkits.mplot3d.art3d as art3d
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Patch
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import MaxNLocator
@@ -742,79 +741,26 @@ def figure_network_sketch():
     print('  Diluting connection density: {}'.format(red_conn_dens))
 
     # set up figure
-    fig = plt.figure(figsize=(6.5*2,5))
-    # fig.subplots_adjust(top=1., bottom=0.08, left=0., right=0.65)
-    # ax = fig.gca(projection='3d')
-    ax = fig.add_subplot(GridSpec(1, 1, left=0.0, right=0.45, top=0.95, bottom=0.05)[:, :], projection='3d')
-    gs = GridSpec(3, 2, left=0.55, top=0.95, bottom=0.05)
+    fig = plt.figure(figsize=(13,5))
+    # grid spec for left and right panel
+    gs = gridspec.GridSpec(1, 2, wspace=0.5)
 
-    # build figure from bottom to top
+
+    # plot connectivity using ConnPlotter's style
+    gs0 = gridspec.GridSpecFromSubplotSpec(3, 2, subplot_spec=gs[0,0],
+                                           wspace=0.01)
+
     lList = [
         ('STIM', layerdict_stim),
         ('EX', layerdict_ex),
         ('IN', layerdict_in),
         ]
-    pops_list = ['IN', 'EX', 'STIM'] # bottom, center, top
-    dots = []
-    for pop in pops_list: # from bottom to top
-        plot_layer(ax, pop, pops_list)
-        dots = plot_connections(ax, pop, pops_list, red_conn_dens, dots)
-    plot_dots(ax, dots)
-
-    # make plot look nice
-    ax.set_aspect('equal')
-    ax.set_xlabel('x (mm)', labelpad=-1)
-    ax.set_ylabel('y (mm)', labelpad=-1)
-    ax.set_xticks([-2., -1, 0, 1., 2.])
-    ax.set_yticks([-2., -1, 0, 1., 2.])
-    ax.xaxis.set_tick_params(pad=-1)
-    ax.yaxis.set_tick_params(pad=-1)
-    ax.w_zaxis.line.set_lw(0.)
-    ax.set_zticks([])
-
-    ax.grid(False)
-    ax.xaxis.pane.set_edgecolor('white')
-    ax.yaxis.pane.set_edgecolor('white')
-    ax.xaxis.pane.fill = False
-    ax.yaxis.pane.fill = False
-    ax.zaxis.pane.fill = False
-
-    # legend
-    handles = \
-        [Patch(color=pops['STIM']['color']),
-         Patch(color=pops['EX']['color']),
-         Patch(color=pops['IN']['color']),
-         plt.Line2D((0,1),(0,0), color='white', marker='o',
-                    markeredgecolor='black', linestyle=''),
-         plt.Line2D((0,1),(0,0), color=pops['EX']['conn_color']),
-         plt.Line2D((0,1),(0,0), color=pops['IN']['conn_color'])]
-    labels = \
-        ['STIM',
-         'EX',
-         'IN',
-         'source',
-         'exc. connection',
-         'inh. connection']
-    ax.legend(handles, labels, numpoints=1, loc=2, bbox_to_anchor=(0.7, 0.95),
-              fontsize=10)
-
-    ax.view_init(elev=12, azim=-60)
-
-    ax = fig.add_subplot(111)
-    ax.axis('off')
-    ax.text(0.05, 0.95, 'A',
-        horizontalalignment='center',
-        verticalalignment='center',
-        fontsize=16, fontweight='demibold',
-        transform=fig.transFigure)
-
-    # plot connectivity using ConnPlotter's style
     conns = [[1, 0], [1, 1], [1, 1]]
     pList = ['EX', 'IN']
     cDicts = [conn_dict_stim, conn_dict_ex, conn_dict_in]
     for i, ((pre, lDict), cDict, conn) in enumerate(zip(lList, cDicts, conns)):
         for j, post in enumerate(pList):
-            ax = fig.add_subplot(gs[i, j], aspect='equal')
+            ax = fig.add_subplot(gs0[i, j], aspect='equal')
             extent = lDict['extent']
             x = np.linspace(-extent[0]/2, extent[0]/2, 101)
             y = np.linspace(-extent[1]/2, extent[1]/2, 101)
@@ -890,12 +836,67 @@ def figure_network_sketch():
                 ax.set_ylabel('{}\ny (mm)'.format(pre), labelpad=0)
 
             if i == 0 and j == 0:
-                ax.text(0.5, 0.95, 'B',
+                ax.text(0.11, 0.95, 'A',
                     horizontalalignment='center',
                     verticalalignment='center',
                     fontsize=16, fontweight='demibold',
                     transform=fig.transFigure)
 
+
+    # network sketch
+    ax1 = plt.subplot(gs[0, 1], projection='3d')
+    ax1.text2D(0.61, 0.95, 'B',
+        horizontalalignment='center',
+        verticalalignment='center',
+        fontsize=16, fontweight='demibold',
+        transform=fig.transFigure)
+
+    # build figure from bottom to top
+    pops_list = ['IN', 'EX', 'STIM'] # bottom, center, top
+    dots = []
+    for pop in pops_list: # from bottom to top
+        plot_layer(ax1, pop, pops_list)
+        dots = plot_connections(ax1, pop, pops_list, red_conn_dens, dots)
+    plot_dots(ax1, dots)
+
+    # make plot look nice
+    ax1.set_aspect('equal')
+    ax1.set_xlabel('x (mm)', labelpad=-1)
+    ax1.set_ylabel('y (mm)', labelpad=-1)
+    ax1.set_xticks([-2., -1, 0, 1., 2.])
+    ax1.set_yticks([-2., -1, 0, 1., 2.])
+    ax1.xaxis.set_tick_params(pad=-1)
+    ax1.yaxis.set_tick_params(pad=-1)
+    ax1.w_zaxis.line.set_lw(0.)
+    ax1.set_zticks([])
+
+    ax1.grid(False)
+    ax1.xaxis.pane.set_edgecolor('white')
+    ax1.yaxis.pane.set_edgecolor('white')
+    ax1.xaxis.pane.fill = False
+    ax1.yaxis.pane.fill = False
+    ax1.zaxis.pane.fill = False
+
+    # legend
+    handles = \
+        [Patch(color=pops['STIM']['color']),
+         Patch(color=pops['EX']['color']),
+         Patch(color=pops['IN']['color']),
+         plt.Line2D((0,1),(0,0), color='white', marker='o',
+                    markeredgecolor='black', linestyle=''),
+         plt.Line2D((0,1),(0,0), color=pops['EX']['conn_color']),
+         plt.Line2D((0,1),(0,0), color=pops['IN']['conn_color'])]
+    labels = \
+        ['STIM',
+         'EX',
+         'IN',
+         'source',
+         'exc. connection',
+         'inh. connection']
+    ax1.legend(handles, labels, numpoints=1, loc=2, bbox_to_anchor=(0.7, 1.),
+              fontsize=10)
+
+    ax1.view_init(elev=12, azim=-60)
 
     fig.savefig(os.path.join(spike_output_path, 'network_sketch.pdf'), dpi=160,
                 bbox_inches='tight')
@@ -917,7 +918,7 @@ def plot_layer(ax, pop, pops_list):
 def plot_connections(ax, pop, pops_list, red_conn_dens, dots):
     # note that xyloc of connection is set here manually
 
-    # connections from pop to tagt
+    # connections from pop to tgts
     for tgt in pops[pop]['tgts']:
         z0 = pops_list.index(pop)
         z1 = z0 + (pops_list.index(tgt) - z0)
@@ -935,11 +936,11 @@ def plot_connections(ax, pop, pops_list, red_conn_dens, dots):
             tgtsloc = tgtsloc[np.argsort(tgtsloc[:,0])]
             tgtsloc_show = tgtsloc[0:len(tgtsloc):red_conn_dens]
             for tgtloc in tgtsloc_show:
-                plt.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
+                ax.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
                          [z0, z1], c=pops[pop]['conn_color'], linewidth=1,
                          alpha=0.1)
                 # highlight target
-                plt.plot(tgtloc[0], tgtloc[1], zs=[z1], marker='o',
+                ax.plot(tgtloc[0], tgtloc[1], zs=[z1], marker='o',
                          markeredgecolor='none',
                          markersize=2, color=pops[pop]['conn_color'],
                          alpha=1.)
@@ -964,10 +965,11 @@ def plot_connections(ax, pop, pops_list, red_conn_dens, dots):
             tgtsloc = tgtsloc[np.argsort(tgtsloc[:,0])]
             tgtsloc_show = tgtsloc[0:len(tgtsloc):red_conn_dens]
             for tgtloc in tgtsloc_show:
-                plt.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
+                pass
+                ax.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
                          [z0, z1], c=pops[src]['conn_color'], linewidth=1,
                          alpha=0.1)
-                plt.plot(tgtloc[0], tgtloc[1], zs=[z1], marker='o',
+                ax.plot(tgtloc[0], tgtloc[1], zs=[z1], marker='o',
                          markeredgecolor='none',
                          markersize=2, color=pops[src]['conn_color'],
                          alpha=1.)
@@ -1089,7 +1091,7 @@ def _plot_spikes(ax, dilute, nodes=pops['EX']['nodes'],
 
 
 def _plot_space_histogram(label, gs_cell, pops_list):
-    gs_loc = gridspec.GridSpecFromSubplotSpec(1,3, gs_cell, wspace=0.15)
+    gs_loc = gridspec.GridSpecFromSubplotSpec(1, 3, gs_cell, wspace=0.15)
 
     binsize=0.05
     bins = np.arange(-2, 2+binsize, binsize)
