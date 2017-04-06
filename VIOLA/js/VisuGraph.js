@@ -131,6 +131,9 @@ Visu.Graph.prototype = {
             this.data.datasets[s][k][i * this.data.yNeurons + j];
         };
       };
+      // scale by the number of bins,
+      // spikesData is then an average of all spike-count rates for layer s and
+      // time step k preserving the unit of datasets
       this.spikesData[s][k] /= this.data.xNeurons * this.data.yNeurons;
     };
   },
@@ -158,7 +161,7 @@ Visu.Graph.prototype = {
 
     this.maxSpikes = 0;
 
-    //Compute total spikes
+    //Compute total spikes = sum over all layers at time point i
     for (var i = 0; i < this.data.timestamps; i++) {
       this.total[i] = 0;
       for (var j = 0; j < this.data.nLayers; j++) {
@@ -171,9 +174,9 @@ Visu.Graph.prototype = {
       };
     };
 
-    this.maxSpikes /= this.data.nLayers;
-
-    this.totalRatio = this.svgH / 2 / this.maxSpikes / this.data.nLayers;
+    //maximum height should correspond to the maximum total spike count,
+    //the scaling factor totalRatio ensure this
+    this.totalRatio = this.svgH/2 / this.maxSpikes;
   },
 
   setOffset: function(index) {
@@ -341,14 +344,22 @@ Visu.Graph.prototype = {
 
   drawAxes: function() {
 
-    var sp = [Math.floor(this.data.getUnscaledValue(this.maxSpikes /
-                                                    this.data.resolution)),
-              Math.floor(this.data.getUnscaledValue(3 * this.maxSpikes /
-                                                    this.data.resolution / 4)),
-              Math.floor(this.data.getUnscaledValue(this.maxSpikes /
-                                                    this.data.resolution / 2)),
-              Math.floor(this.data.getUnscaledValue(this.maxSpikes /
-                                                    this.data.resolution / 4))];
+    var axmax; // maximum of axis
+    if (this.data.dataType == "binned") {
+        // unit of datasets is already 1/s
+        axmax = this.maxSpikes;
+    }
+    else if (this.data.dataType == "neuron") {
+        // resolution is given in ms, but unit should be in 1/s
+        axmax = this.maxSpikes / (this.data.resolution * 0.001);
+    }
+
+    var sp = [Math.floor(this.data.getUnscaledValue(axmax)),
+              Math.floor(this.data.getUnscaledValue(3 * axmax / 4)),
+              Math.floor(this.data.getUnscaledValue(axmax / 2)),
+              Math.floor(this.data.getUnscaledValue(axmax / 4))];
+
+
     var unit = ["", "K", "M", "G", "T"];
     var uToUse = [0, 0, 0, 0];
 
@@ -399,9 +410,9 @@ Visu.Graph.prototype = {
     this.ctxA.translate(-this.svgH, 0);
     this.ctxA.textBaseline = "middle";
     this.ctxA.font = "12px sans-serif";
-    this.ctxA.fillText("Mean spike count (1/s)",
+    this.ctxA.fillText("Total spike count (1/s)",
                        3 * this.svgH / 4 -
-                         this.ctxA.measureText("Mean spike count (1/s)").width /
+                         this.ctxA.measureText("Total spike count (1/s)").width /
                          2,
                        15);
     this.ctxA.restore();
