@@ -268,6 +268,7 @@ Visu.Graph.prototype = {
     this.computeData();
     this.displayData();
     this.drawAxes();
+    this.drawLegend();
   },
 
   drawIndexGraph: function(index) {
@@ -281,20 +282,34 @@ Visu.Graph.prototype = {
   },
 
   drawLegend: function() {
-    //Draw legend
+    //Draw legend only for displayed populations
+
+    //number of populations to be displayed equals the sum of
+    //the bool array displayPop
+    var ndisp;
+    ndisp = this.displayPop.reduce(function(prev, cur) {
+            return prev + cur;
+            });
+
+    this.ctxL.clearRect(0, 0, 100, this.svgH);
     this.ctxL.font = "12px sans-serif";
     this.ctxL.textBaseline = "middle";
+    var dispCnt = 0;
     for (var i = 0; i < this.data.nLayers; i++) {
-      this.ctxL.fillStyle = this.data.layerColors[i];
-      this.ctxL.fillRect(10,
-                         i * this.svgH / this.data.nLayers,
-                         20,
-                         this.svgH / this.data.nLayers);
-      this.ctxL.fillStyle = "black";
-      this.ctxL.fillText(this.data.layerNames[i],
-                         34,
-                         i * this.svgH / this.data.nLayers + this.svgH /
-                           this.data.nLayers / 2);
+      if (this.displayPop[i]) {
+        this.ctxL.fillStyle = this.data.layerColors[i];
+        this.ctxL.fillRect(10,
+                           dispCnt * this.svgH / ndisp,
+                           20,
+                           this.svgH / ndisp);
+        this.ctxL.fillStyle = "black";
+        this.ctxL.fillText(this.data.layerNames[i],
+                           34,
+                           dispCnt * this.svgH / ndisp + this.svgH /
+                           ndisp / 2);
+        dispCnt += 1;
+
+      };
     };
   },
 
