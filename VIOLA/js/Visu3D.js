@@ -608,7 +608,7 @@ Visu.Renderer3D = function(panel, data) {
     this.tctx.font = "20px sans-serif";
     this.tctx.fillStyle = "black";
     this.tctx.textBaseline = "middle";
-    this.tctx.fillText("t(ms)", 50 - this.tctx.measureText("t(ms)")
+    this.tctx.fillText("Delay (ms)", 50 - this.tctx.measureText("Delay (ms)")
                          .width / 2, 50);
     this.tTexture.needsUpdate = true;
 
