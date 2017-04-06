@@ -244,19 +244,26 @@ Visu.Graph.prototype = {
     //Simulation time display
     this.ctx.textBaseline = "top";
     this.ctx.font = "12px sans-serif";
+    this.ctx.fillStyle = "black";
+
+    var resLen; //putative additional length due to resolution
+    if (this.data.resolution < 1) {
+      resLen = String(parseInt(1. / this.data.resolution));
+    }
+    else {
+      resLen = 0;
+    };
     this.ctx.fillRect(0,
                       0,
-                      this.ctx.measureText(this.data.simulationLength +
+                      this.ctx.measureText(this.data.simulationLength + resLen +
                                            "/" + this.data.simulationLength +
-                                           " ms").width + 10, 16);
+                                           resLen +
+                                           " ms").width + 5, 18);
     this.ctx.fillStyle = "white";
     this.ctx.fillText(this.data.currTime + "/" + this.data.simulationLength +
                         " ms",
-                      5 + this.ctx.measureText(this.data.simulationLength +
-                        "/" + this.data.simulationLength + " ms").width -
-                        this.ctx.measureText(this.data.currTime + "/" +
-                        this.data.simulationLength + " ms").width,
-                      2);
+                      5,
+                      3);
 
     this.drawIndexGraph(index);
 
