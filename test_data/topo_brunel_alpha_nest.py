@@ -114,7 +114,7 @@ transient = 500. # Simulation transient, discarding spikes at times < transient
 Definition of the parameters crucial for the network state.
 '''
 
-g       = 4.   # ratio inhibitory weight/excitatory weight (before: 5.0)
+g       = 4.5  # ratio inhibitory weight/excitatory weight (before: 5.0)
 eta     = 2.   # external rate relative to threshold rate
 epsilon = 0.1  # connection probability
 
@@ -146,7 +146,7 @@ tauSyn = 0.5    # synaptic time constant in ms
 tauMem = 20.    # time constant of membrane potential in ms
 CMem   = 250.   # capacitance of membrane in in pF
 theta  = 20.    # membrane threshold potential in mV
-tRef = 2.       # refractory period in ms
+tRef   = 2.       # refractory period in ms
 neuron_params= {"C_m":        CMem,
                 "tau_m":      tauMem,
                 "tau_syn_ex": tauSyn,
@@ -156,7 +156,7 @@ neuron_params= {"C_m":        CMem,
                 "V_reset":    0.,
                 "V_m":        0.,
                 "V_th":       theta}
-J      = 0.6        # postsyaptic amplitude in mV (before: 0.1)
+J      = 0.5        # postsyaptic amplitude in mV (before: 0.1)
 J_unit = ComputePSPnorm(tauMem, CMem, tauSyn)
 J_ex   = J / J_unit # amplitude of excitatory postsynaptic current
 J_in   = -g*J_ex    # amplitude of inhibitory postsynaptic current
@@ -176,12 +176,12 @@ p_rate = 1000.*nu_ex*CE
 Parameters for a spatially confined stimulus.
 '''
 
-stim_radius = 0.2       # radius of a circle in mm for location of stimulus
+stim_radius = 0.5       # radius of a circle in mm for location of stimulus
 mask_radius_stim = 0.1  # mask radius of stimulus in mm around each parrot neuron
-num_stim_conn = 100     # number of connections inside mask_radius_stim
-stim_start = 1650.      # start time of stimulus in ms
-stim_duration = 5.      # duration of the stimulus onset in ms
-stim_rate = 5000.       # rate of parrot neurons in Hz during stimulus activation
+num_stim_conn = 300     # number of connections inside mask_radius_stim
+stim_start = 1000.      # start time of stimulus in ms
+stim_duration = 50.     # duration of the stimulus onset in ms
+stim_rate = 300.        # rate of parrot neurons in Hz during stimulus activation
 
 '''
 Definition of topology-specific parameters. Connection routines use fixed
@@ -189,12 +189,13 @@ indegrees = convergent connections with a fixed number of connections.
 '''
 
 extent_length = 4.   # in mm (layer size = extent_length x extent_length)
-sigma_ex = 0.25      # width of Gaussian profile for excitatory connections in mm
+sigma_ex = 0.3      # width of Gaussian profile for excitatory connections in mm
 sigma_in = 0.3       # width of Gaussian profile for inhibitory connections in mm
 
-delay_ex_c = 0.3     # constant term for linear distance-dependent delay in mm
-delay_ex_a = 0.7     # linear term for delay in mm (for excitatory connections)
-delay_in = 1.        # constant delay for inhibitory connections in mm
+delay_ex_c = 0.5 # constant term for linear distance-dep. delay in mm (exc.)
+delay_ex_a = 0.5 # term for delay in mm
+delay_in_c = 0.5 # term for linear distance-dep. delay in mm (inh.)
+delay_in_a = 0.5 # term for delay in mm
 
 pos_ex = list(((random.rand(2*NE) - 0.5) * extent_length).reshape(-1, 2))
 pos_in = list(((random.rand(2*NI) - 0.5) * extent_length).reshape(-1, 2))
@@ -268,8 +269,9 @@ conn_dict_in = {
     'allow_multapses': True,
     'weights' : J_in,
     'delays' : {
-        'constant' : {
-            'value' : delay_in
+        'linear' : {
+            'c' : delay_in_c,
+            'a' : delay_in_a,
             }
         },
     'kernel' : {
@@ -820,6 +822,8 @@ def figure_network_sketch():
                 axcb = fig.colorbar(im, cax=cax, orientation='vertical')
                 cbarlabel = r'$\epsilon_\mathrm{Y,%s}Jg_\mathrm{Y,%s}$ (pA)' % (pre,pre)
                 axcb.set_label(cbarlabel)
+                axcb.locator = MaxNLocator(nbins=5)
+                axcb.update_ticks()
 
             ax.set_xticks([-2., -1, 0, 1., 2.])
             ax.set_yticks([-2., -1, 0, 1., 2.])
@@ -1238,7 +1242,7 @@ def _plot_raster_unsorted(label, gs_cell, pops_list, times, dilute):
             ax.text(-0.05, 1.7, label, fontsize=16, ha='left',
                     va='bottom', fontweight='demibold', transform=ax.transAxes)
         if i==1:
-            ax.set_ylabel('neuron id\n' + str(pops[pop]['N']))
+            ax.set_ylabel('population size\n' + str(pops[pop]['N']))
     return
 
 
