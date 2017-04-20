@@ -299,357 +299,359 @@ conn_dict_stim = {
     }
 
 
-'''
-Destination for spike output and definition of file prefixes.
-'''
-
-if len(sys.argv) != 2:
-    spike_output_path = 'out_raw'
-else:
-    spike_output_path = sys.argv[-1]
-label = 'spikes' # spike detectors
-label_positions = 'neuron_positions' # neuron positions
-
-'''
-Create the file output destination folder if it does not exist.
-Delete old simulation files if the folder is already present
-'''
-
-if not os.path.isdir(spike_output_path):
-    os.mkdir(spike_output_path)
-else:
-    for fil in os.listdir(spike_output_path):
-        os.remove(os.path.join(spike_output_path, fil))
-
-'''
-Reset the simulation kernel.
-Configuration of the simulation kernel by the previously defined time
-resolution used in the simulation. Setting "print_time" to True prints
-the already processed simulation time as well as its percentage of the
-total simulation time.
-'''
-
-nest.ResetKernel()
-nest.SetKernelStatus({"resolution": dt,
-                      "print_time": False,
-                      "overwrite_files": True,
-                      'local_num_threads': cpu_count(),
-                      'grng_seed': 234567})
-
-print("Building network")
-
-'''
-Configuration of the model `iaf_psc_alpha` and `poisson_generator`
-using SetDefaults(). This function expects the model to be the
-inserted as a string and the parameter to be specified in a
-dictionary. All instances of theses models created after this point
-will have the properties specified in the dictionary by default.
-'''
-
-nest.SetDefaults("iaf_psc_alpha", neuron_params)
-
-'''
-Creation of the topology layers for excitatory and inhibitory neurons.
-GIDs and neuron positions are written to file.
-'''
-
-layer_in = tp.CreateLayer(layerdict_in)
-layer_ex = tp.CreateLayer(layerdict_ex)
-layer_stim = tp.CreateLayer(layerdict_stim)
-
-tp.DumpLayerNodes(layer_ex, os.path.join(spike_output_path,
-                                         label_positions + '-0.dat'))
-tp.DumpLayerNodes(layer_in, os.path.join(spike_output_path,
-                                         label_positions + '-1.dat'))
-tp.DumpLayerNodes(layer_stim, os.path.join(spike_output_path,
-                                         label_positions + '-2.dat'))
-
-nodes_ex = nest.GetChildren(layer_ex)[0] # nodes of ex/in neurons
-nodes_in = nest.GetChildren(layer_in)[0]
-nodes_stim = nest.GetChildren(layer_stim)[0]
-
-'''
-Distribute initial membrane voltages.
-'''
-
-for neurons in [nodes_ex, nodes_in]:
-    for neuron in neurons:
-        nest.SetStatus([neuron], {'V_m': theta * np.random.rand()})
-
-'''
-Create spike detectors for recording from the excitatory and the
-inhibitory populations and a poisson generator as noise source.
-The spike detectors are configured for writing to file.
-'''
-
-espikes = nest.Create("spike_detector")
-ispikes = nest.Create("spike_detector")
-stim_spikes = nest.Create("spike_detector")
-
-nest.SetStatus(espikes,[{
-                   "label": os.path.join(spike_output_path, label + "-0"),
-                   "withtime": True,
-                   "withgid": True,
-                   "to_file": True,
-                   "start" : transient,
-                   }])
-
-nest.SetStatus(ispikes,[{
-                   "label": os.path.join(spike_output_path, label + "-1"),
-                   "withtime": True,
-                   "withgid": True,
-                   "to_file": True,
-                   "start" : transient,
-                   }])
-
-nest.SetStatus(stim_spikes,[{
-                   "label": os.path.join(spike_output_path, label + "-2"),
-                   "withtime": True,
-                   "withgid": True,
-                   "to_file": True,
-                   "start" : transient,
-                   }])
-
-noise = nest.Create("poisson_generator", 1, {"rate": p_rate})
-
-'''
-External stimulus.
-'''
-
-pg_stim = nest.Create('poisson_generator', 1, {'start': stim_start,
-                                               'stop': stim_start + stim_duration,
-                                               'rate': stim_rate})
-
-print("Connecting devices")
-
-'''
-Definition of a synapse using `CopyModel`, which expects the model
-name of a pre-defined synapse, the name of the customary synapse and
-an optional parameter dictionary. The parameters defined in the
-dictionary will be the default parameter for the customary
-synapse. Here we define one synapse for the excitatory and one for the
-inhibitory connections giving the previously defined weights
-'''
-
-nest.CopyModel("static_synapse","excitatory",{"weight":J_ex})
-nest.CopyModel("static_synapse","inhibitory",{"weight":J_in})
-
-'''
-Connecting the previously defined poisson generator to the excitatory
-and inhibitory neurons using the excitatory synapse. Since the poisson
-generator is connected to all neurons in the population the default
-rule ('all_to_all') of Connect() is used. The synaptic properties are
-inserted via syn_spec which expects a dictionary when defining
-multiple variables or a string when simply using a pre-defined
-synapse.
-'''
-
-nest.Connect(noise, nodes_ex, syn_spec="excitatory")
-nest.Connect(noise, nodes_in, syn_spec="excitatory")
-
-'''
-Connecting the excitatory, inhibitory and stimulus populations to the associated
-spike detectors using excitatory synapses. Here the same shortcut for the
-specification of the synapse as defined above is used.
-'''
-
-nest.Connect(nodes_ex, espikes, syn_spec="excitatory")
-nest.Connect(nodes_in, ispikes, syn_spec="excitatory")
-
-nest.Connect(nodes_stim, stim_spikes, syn_spec="excitatory")
-
-print("Connecting network")
-
-'''
-Connecting the excitatory and inhibitory populations using the
-pre-defined excitatory/inhibitory synapse and the connection dictionaries.
-First, update the connection dictionaries with the synapses.
-'''
-
-conn_dict_ex['synapse_model'] = 'excitatory'
-conn_dict_in['synapse_model'] = 'inhibitory'
-conn_dict_stim['synapse_model'] = 'excitatory'
-
-print("Excitatory connections")
-
-tp.ConnectLayers(layer_ex, layer_ex, conn_dict_ex)
-tp.ConnectLayers(layer_ex, layer_in, conn_dict_ex)
-
-print("Inhibitory connections")
-tp.ConnectLayers(layer_in, layer_ex, conn_dict_in)
-tp.ConnectLayers(layer_in, layer_in, conn_dict_in)
-
-'''
-Connect spike generator of external stimulus with the excitatory neurons.
-'''
-
-tp.ConnectLayers(layer_stim, layer_ex, conn_dict_stim)
-
-nest.Connect(pg_stim, nodes_stim, syn_spec={'weight': J_ex})
-
-'''
-Storage of the time point after the buildup of the network in a
-variable.
-'''
-
-endbuild=time.time()
-
-# # ConnPlotter test plot
-# if True:
-#     import ConnPlotter as cpl
-#     nest.CopyModel("static_synapse","STIM", {"weight":stim_weight_scale*J_ex})
-#     conn_dict_stim['synapse_model'] = 'STIM' # somehow 
-#     lList = [
-#         ('STIM', layerdict_stim),
-#         ('EX', layerdict_ex),
-#         ('IN', layerdict_in),
-#         ]
-#     cList = [
-#         ('STIM', 'EX', conn_dict_stim),
-#         ('EX', 'EX', conn_dict_ex),
-#         ('EX', 'IN', conn_dict_ex),
-#         ('IN', 'EX', conn_dict_in),
-#         ('IN', 'IN', conn_dict_in),
-#         ]
-#     synTypes = ((
-#         cpl.SynType('excitatory', J_ex, 'r'),
-#         cpl.SynType('inhibitory', J_in, 'b'),
-#         cpl.SynType('STIM', stim_weight_scale*J_ex, 'k')
-#         ),)
-#     s_cp = cpl.ConnectionPattern(lList, cList, synTypes=synTypes)
-#     s_cp.plot(colorLimits=[0,100])
-#     s_cp.plot(aggrSyns=True, colorLimits=[0,100])
-#     plt.show()
-
-
-
-'''
-Simulation of the network.
-'''
-
-print("Simulating")
-
-nest.Simulate(simtime)
-
-'''
-Storage of the time point after the simulation of the network in a
-variable.
-'''
-
-endsimulate= time.time()
-
-'''
-Reading out the total number of spikes received from the spike
-detector connected to the excitatory population and the inhibitory
-population.
-'''
-
-events_ex = nest.GetStatus(espikes,"n_events")[0]
-events_in = nest.GetStatus(ispikes,"n_events")[0]
-events_stim = nest.GetStatus(stim_spikes,"n_events")[0]
-
-'''
-Calculation of the average firing rate of the excitatory and the
-inhibitory neurons by the simulation time. The
-multiplication by 1000.0 converts the unit 1/ms to 1/s=Hz.
-'''
-
-rate_ex   = events_ex/(simtime-transient)*1000./len(nodes_ex)
-rate_in   = events_in/(simtime-transient)*1000./len(nodes_in)
-rate_stim   = events_stim/(simtime-transient)*1000./len(nodes_in)
-
-'''
-Reading out the number of connections established using the excitatory
-and inhibitory synapse model. The numbers are summed up resulting in
-the total number of synapses.
-'''
-
-num_synapses = nest.GetDefaults("excitatory")["num_connections"]+\
-               nest.GetDefaults("inhibitory")["num_connections"]
-
-'''
-Establishing the time it took to build and simulate the network by
-taking the difference of the pre-defined time variables.
-'''
-
-build_time = endbuild-startbuild
-sim_time   = endsimulate-endbuild
-
-'''
-Printing the network properties, firing rates and building times.
-'''
-
-print("Brunel network simulation (Python)")
-print("Number of neurons : {0}".format(N_neurons))
-# including devices and noise
-print("Number of synapses: {0}".format(num_synapses))
-# neurons + noise + spike detectors
-print("       Exitatory  : {0}".format(int(CE * N_neurons) + 2 * N_neurons))
-print("       Inhibitory : {0}".format(int(CI * N_neurons)))
-print("Excitatory rate   : %.2f Hz" % rate_ex)
-print("Inhibitory rate   : %.2f Hz" % rate_in)
-print("Stimulus rate     : %.2f Hz" % rate_stim)
-print("Building time     : %.2f s" % build_time)
-print("Simulation time   : %.2f s" % sim_time)
-
-'''
-A dictionary for population parameters is created to allow for easier access.
-'''
-
-pops = {}
-pops['EX'] = {}
-pops['IN'] = {}
-pops['STIM'] = {}
-
-# neuron numbers
-pops['EX']['N'] = NE
-pops['IN']['N'] = NI
-pops['STIM']['N'] = N_stim
-
-# positions
-pops['EX']['pos'] = pos_ex
-pops['IN']['pos'] = pos_in
-pops['STIM']['pos'] = pos_stim
-
-# layer
-pops['EX']['layer'] = layer_ex
-pops['IN']['layer'] = layer_in
-pops['STIM']['layer'] = layer_stim
-
-# layerdict
-pops['EX']['layerdict'] = layerdict_ex
-pops['IN']['layerdict'] = layerdict_in
-pops['STIM']['layerdict'] = layerdict_stim
-
-# nodes
-pops['EX']['nodes'] = nodes_ex
-pops['IN']['nodes'] = nodes_in
-pops['STIM']['nodes'] = nodes_stim
-
-# rate
-pops['EX']['rate'] = rate_ex
-pops['IN']['rate'] = rate_in
-pops['STIM']['rate'] = rate_stim
-
-# events
-pops['EX']['events'] = nest.GetStatus(espikes, 'events')[0]
-pops['IN']['events'] = nest.GetStatus(ispikes, 'events')[0]
-pops['STIM']['events'] = nest.GetStatus(stim_spikes, 'events')[0]
-
-# population colors
-pops['EX']['color'] =  mpc.hex2color('#b22222')       # firebrick
-pops['IN']['color'] =  mpc.hex2color('#0000cd')       # MediumBlue
-pops['STIM']['color'] =  mpc.hex2color('#696969')     # DimGray
-
-# population colors (just darker than population colors
-pops['EX']['conn_color'] = mpc.hex2color('#ff3030')   # firebrick1
-pops['IN']['conn_color'] = mpc.hex2color('#4169e1')   # RoyalBlue
-pops['STIM']['conn_color'] = mpc.hex2color('#ff3030') # firebrick1
-
-# targets of the neuron type
-pops['EX']['tgts'] = ['EX', 'IN']
-pops['IN']['tgts'] = ['EX', 'IN']
-pops['STIM']['tgts'] = ['EX']
+if __name__ == '__main__':
+    
+    '''
+    Destination for spike output and definition of file prefixes.
+    '''
+    
+    if len(sys.argv) != 2:
+        spike_output_path = 'out_raw'
+    else:
+        spike_output_path = sys.argv[-1]
+    label = 'spikes' # spike detectors
+    label_positions = 'neuron_positions' # neuron positions
+    
+    '''
+    Create the file output destination folder if it does not exist.
+    Delete old simulation files if the folder is already present
+    '''
+    
+    if not os.path.isdir(spike_output_path):
+        os.mkdir(spike_output_path)
+    else:
+        for fil in os.listdir(spike_output_path):
+            os.remove(os.path.join(spike_output_path, fil))
+    
+    '''
+    Reset the simulation kernel.
+    Configuration of the simulation kernel by the previously defined time
+    resolution used in the simulation. Setting "print_time" to True prints
+    the already processed simulation time as well as its percentage of the
+    total simulation time.
+    '''
+    
+    nest.ResetKernel()
+    nest.SetKernelStatus({"resolution": dt,
+                          "print_time": False,
+                          "overwrite_files": True,
+                          'local_num_threads': cpu_count(),
+                          'grng_seed': 234567})
+    
+    print("Building network")
+    
+    '''
+    Configuration of the model `iaf_psc_alpha` and `poisson_generator`
+    using SetDefaults(). This function expects the model to be the
+    inserted as a string and the parameter to be specified in a
+    dictionary. All instances of theses models created after this point
+    will have the properties specified in the dictionary by default.
+    '''
+    
+    nest.SetDefaults("iaf_psc_alpha", neuron_params)
+    
+    '''
+    Creation of the topology layers for excitatory and inhibitory neurons.
+    GIDs and neuron positions are written to file.
+    '''
+    
+    layer_in = tp.CreateLayer(layerdict_in)
+    layer_ex = tp.CreateLayer(layerdict_ex)
+    layer_stim = tp.CreateLayer(layerdict_stim)
+    
+    tp.DumpLayerNodes(layer_ex, os.path.join(spike_output_path,
+                                             label_positions + '-0.dat'))
+    tp.DumpLayerNodes(layer_in, os.path.join(spike_output_path,
+                                             label_positions + '-1.dat'))
+    tp.DumpLayerNodes(layer_stim, os.path.join(spike_output_path,
+                                             label_positions + '-2.dat'))
+    
+    nodes_ex = nest.GetChildren(layer_ex)[0] # nodes of ex/in neurons
+    nodes_in = nest.GetChildren(layer_in)[0]
+    nodes_stim = nest.GetChildren(layer_stim)[0]
+    
+    '''
+    Distribute initial membrane voltages.
+    '''
+    
+    for neurons in [nodes_ex, nodes_in]:
+        for neuron in neurons:
+            nest.SetStatus([neuron], {'V_m': theta * np.random.rand()})
+    
+    '''
+    Create spike detectors for recording from the excitatory and the
+    inhibitory populations and a poisson generator as noise source.
+    The spike detectors are configured for writing to file.
+    '''
+    
+    espikes = nest.Create("spike_detector")
+    ispikes = nest.Create("spike_detector")
+    stim_spikes = nest.Create("spike_detector")
+    
+    nest.SetStatus(espikes,[{
+                       "label": os.path.join(spike_output_path, label + "-0"),
+                       "withtime": True,
+                       "withgid": True,
+                       "to_file": True,
+                       "start" : transient,
+                       }])
+    
+    nest.SetStatus(ispikes,[{
+                       "label": os.path.join(spike_output_path, label + "-1"),
+                       "withtime": True,
+                       "withgid": True,
+                       "to_file": True,
+                       "start" : transient,
+                       }])
+    
+    nest.SetStatus(stim_spikes,[{
+                       "label": os.path.join(spike_output_path, label + "-2"),
+                       "withtime": True,
+                       "withgid": True,
+                       "to_file": True,
+                       "start" : transient,
+                       }])
+    
+    noise = nest.Create("poisson_generator", 1, {"rate": p_rate})
+    
+    '''
+    External stimulus.
+    '''
+    
+    pg_stim = nest.Create('poisson_generator', 1, {'start': stim_start,
+                                                   'stop': stim_start + stim_duration,
+                                                   'rate': stim_rate})
+    
+    print("Connecting devices")
+    
+    '''
+    Definition of a synapse using `CopyModel`, which expects the model
+    name of a pre-defined synapse, the name of the customary synapse and
+    an optional parameter dictionary. The parameters defined in the
+    dictionary will be the default parameter for the customary
+    synapse. Here we define one synapse for the excitatory and one for the
+    inhibitory connections giving the previously defined weights
+    '''
+    
+    nest.CopyModel("static_synapse","excitatory",{"weight":J_ex})
+    nest.CopyModel("static_synapse","inhibitory",{"weight":J_in})
+    
+    '''
+    Connecting the previously defined poisson generator to the excitatory
+    and inhibitory neurons using the excitatory synapse. Since the poisson
+    generator is connected to all neurons in the population the default
+    rule ('all_to_all') of Connect() is used. The synaptic properties are
+    inserted via syn_spec which expects a dictionary when defining
+    multiple variables or a string when simply using a pre-defined
+    synapse.
+    '''
+    
+    nest.Connect(noise, nodes_ex, syn_spec="excitatory")
+    nest.Connect(noise, nodes_in, syn_spec="excitatory")
+    
+    '''
+    Connecting the excitatory, inhibitory and stimulus populations to the associated
+    spike detectors using excitatory synapses. Here the same shortcut for the
+    specification of the synapse as defined above is used.
+    '''
+    
+    nest.Connect(nodes_ex, espikes, syn_spec="excitatory")
+    nest.Connect(nodes_in, ispikes, syn_spec="excitatory")
+    
+    nest.Connect(nodes_stim, stim_spikes, syn_spec="excitatory")
+    
+    print("Connecting network")
+    
+    '''
+    Connecting the excitatory and inhibitory populations using the
+    pre-defined excitatory/inhibitory synapse and the connection dictionaries.
+    First, update the connection dictionaries with the synapses.
+    '''
+    
+    conn_dict_ex['synapse_model'] = 'excitatory'
+    conn_dict_in['synapse_model'] = 'inhibitory'
+    conn_dict_stim['synapse_model'] = 'excitatory'
+    
+    print("Excitatory connections")
+    
+    tp.ConnectLayers(layer_ex, layer_ex, conn_dict_ex)
+    tp.ConnectLayers(layer_ex, layer_in, conn_dict_ex)
+    
+    print("Inhibitory connections")
+    tp.ConnectLayers(layer_in, layer_ex, conn_dict_in)
+    tp.ConnectLayers(layer_in, layer_in, conn_dict_in)
+    
+    '''
+    Connect spike generator of external stimulus with the excitatory neurons.
+    '''
+    
+    tp.ConnectLayers(layer_stim, layer_ex, conn_dict_stim)
+    
+    nest.Connect(pg_stim, nodes_stim, syn_spec={'weight': J_ex})
+    
+    '''
+    Storage of the time point after the buildup of the network in a
+    variable.
+    '''
+    
+    endbuild=time.time()
+    
+    # # ConnPlotter test plot
+    # if True:
+    #     import ConnPlotter as cpl
+    #     nest.CopyModel("static_synapse","STIM", {"weight":stim_weight_scale*J_ex})
+    #     conn_dict_stim['synapse_model'] = 'STIM' # somehow 
+    #     lList = [
+    #         ('STIM', layerdict_stim),
+    #         ('EX', layerdict_ex),
+    #         ('IN', layerdict_in),
+    #         ]
+    #     cList = [
+    #         ('STIM', 'EX', conn_dict_stim),
+    #         ('EX', 'EX', conn_dict_ex),
+    #         ('EX', 'IN', conn_dict_ex),
+    #         ('IN', 'EX', conn_dict_in),
+    #         ('IN', 'IN', conn_dict_in),
+    #         ]
+    #     synTypes = ((
+    #         cpl.SynType('excitatory', J_ex, 'r'),
+    #         cpl.SynType('inhibitory', J_in, 'b'),
+    #         cpl.SynType('STIM', stim_weight_scale*J_ex, 'k')
+    #         ),)
+    #     s_cp = cpl.ConnectionPattern(lList, cList, synTypes=synTypes)
+    #     s_cp.plot(colorLimits=[0,100])
+    #     s_cp.plot(aggrSyns=True, colorLimits=[0,100])
+    #     plt.show()
+    
+    
+    
+    '''
+    Simulation of the network.
+    '''
+    
+    print("Simulating")
+    
+    nest.Simulate(simtime)
+    
+    '''
+    Storage of the time point after the simulation of the network in a
+    variable.
+    '''
+    
+    endsimulate= time.time()
+    
+    '''
+    Reading out the total number of spikes received from the spike
+    detector connected to the excitatory population and the inhibitory
+    population.
+    '''
+    
+    events_ex = nest.GetStatus(espikes,"n_events")[0]
+    events_in = nest.GetStatus(ispikes,"n_events")[0]
+    events_stim = nest.GetStatus(stim_spikes,"n_events")[0]
+    
+    '''
+    Calculation of the average firing rate of the excitatory and the
+    inhibitory neurons by the simulation time. The
+    multiplication by 1000.0 converts the unit 1/ms to 1/s=Hz.
+    '''
+    
+    rate_ex   = events_ex/(simtime-transient)*1000./len(nodes_ex)
+    rate_in   = events_in/(simtime-transient)*1000./len(nodes_in)
+    rate_stim   = events_stim/(simtime-transient)*1000./len(nodes_in)
+    
+    '''
+    Reading out the number of connections established using the excitatory
+    and inhibitory synapse model. The numbers are summed up resulting in
+    the total number of synapses.
+    '''
+    
+    num_synapses = nest.GetDefaults("excitatory")["num_connections"]+\
+                   nest.GetDefaults("inhibitory")["num_connections"]
+    
+    '''
+    Establishing the time it took to build and simulate the network by
+    taking the difference of the pre-defined time variables.
+    '''
+    
+    build_time = endbuild-startbuild
+    sim_time   = endsimulate-endbuild
+    
+    '''
+    Printing the network properties, firing rates and building times.
+    '''
+    
+    print("Brunel network simulation (Python)")
+    print("Number of neurons : {0}".format(N_neurons))
+    # including devices and noise
+    print("Number of synapses: {0}".format(num_synapses))
+    # neurons + noise + spike detectors
+    print("       Exitatory  : {0}".format(int(CE * N_neurons) + 2 * N_neurons))
+    print("       Inhibitory : {0}".format(int(CI * N_neurons)))
+    print("Excitatory rate   : %.2f Hz" % rate_ex)
+    print("Inhibitory rate   : %.2f Hz" % rate_in)
+    print("Stimulus rate     : %.2f Hz" % rate_stim)
+    print("Building time     : %.2f s" % build_time)
+    print("Simulation time   : %.2f s" % sim_time)
+    
+    '''
+    A dictionary for population parameters is created to allow for easier access.
+    '''
+    
+    pops = {}
+    pops['EX'] = {}
+    pops['IN'] = {}
+    pops['STIM'] = {}
+    
+    # neuron numbers
+    pops['EX']['N'] = NE
+    pops['IN']['N'] = NI
+    pops['STIM']['N'] = N_stim
+    
+    # positions
+    pops['EX']['pos'] = pos_ex
+    pops['IN']['pos'] = pos_in
+    pops['STIM']['pos'] = pos_stim
+    
+    # layer
+    pops['EX']['layer'] = layer_ex
+    pops['IN']['layer'] = layer_in
+    pops['STIM']['layer'] = layer_stim
+    
+    # layerdict
+    pops['EX']['layerdict'] = layerdict_ex
+    pops['IN']['layerdict'] = layerdict_in
+    pops['STIM']['layerdict'] = layerdict_stim
+    
+    # nodes
+    pops['EX']['nodes'] = nodes_ex
+    pops['IN']['nodes'] = nodes_in
+    pops['STIM']['nodes'] = nodes_stim
+    
+    # rate
+    pops['EX']['rate'] = rate_ex
+    pops['IN']['rate'] = rate_in
+    pops['STIM']['rate'] = rate_stim
+    
+    # events
+    pops['EX']['events'] = nest.GetStatus(espikes, 'events')[0]
+    pops['IN']['events'] = nest.GetStatus(ispikes, 'events')[0]
+    pops['STIM']['events'] = nest.GetStatus(stim_spikes, 'events')[0]
+    
+    # population colors
+    pops['EX']['color'] =  mpc.hex2color('#b22222')       # firebrick
+    pops['IN']['color'] =  mpc.hex2color('#0000cd')       # MediumBlue
+    pops['STIM']['color'] =  mpc.hex2color('#696969')     # DimGray
+    
+    # population colors (just darker than population colors
+    pops['EX']['conn_color'] = mpc.hex2color('#ff3030')   # firebrick1
+    pops['IN']['conn_color'] = mpc.hex2color('#4169e1')   # RoyalBlue
+    pops['STIM']['conn_color'] = mpc.hex2color('#ff3030') # firebrick1
+    
+    # targets of the neuron type
+    pops['EX']['tgts'] = ['EX', 'IN']
+    pops['IN']['tgts'] = ['EX', 'IN']
+    pops['STIM']['tgts'] = ['EX']
 
 
 '''
