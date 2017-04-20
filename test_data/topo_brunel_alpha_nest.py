@@ -780,7 +780,7 @@ def figure_network_sketch():
                         vmax = weights
                     except KeyError as ae:
                         raise ae
-                if type(cDict['kernel']) is dict:
+                elif type(cDict['kernel']) is dict:
                     try:
                         sigma = cDict['kernel']['gaussian']['sigma']
                         if 'mask' in cDict.keys():
@@ -814,13 +814,17 @@ def figure_network_sketch():
                         raise ae
                 else:
                     pass
-            im = ax.pcolormesh(X,Y,C, cmap=cmap, vmin=vmin, vmax=vmax)
+
+            cmap.set_bad('0.75')
+            im = ax.pcolormesh(X,Y,np.ma.array(C, mask=C==0), cmap=cmap, vmin=vmin, vmax=vmax)
+            # im = ax.pcolormesh(X,Y,C, cmap=cmap, vmin=vmin, vmax=vmax)
 
             if j == (len(pList)-1):
                 bbox = np.array(ax.get_position())
                 cax = fig.add_axes([bbox[1][0]+0.01, bbox[0][1], 0.015, (bbox[1][1]-bbox[0][1])])
                 axcb = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbarlabel = r'$\epsilon_\mathrm{Y,%s}Jg_\mathrm{Y,%s}$ (pA)' % (pre,pre)
+                cbarlabel = r'$\epsilon_{YX}Jg_{YX}$ (pA)'
+                # cbarlabel = r'$\epsilon_{Y,\mathrm{%s}}Jg_{Y,\mathrm{%s}}$ (pA)' % (pre,pre)
                 axcb.set_label(cbarlabel)
                 axcb.locator = MaxNLocator(nbins=5)
                 axcb.update_ticks()
@@ -831,13 +835,13 @@ def figure_network_sketch():
             if i != (len(lList)-1):
                 ax.set_xticklabels([])
             else:
-                ax.set_xlabel('x (mm)', labelpad=0)
+                ax.set_xlabel(r'$x_i - x_j$ (mm)', labelpad=0)
             if i == 0:
-                ax.set_title(post)
+                ax.set_title(r'$Y=${}'.format(post))
             if j != 0:
                 ax.set_yticklabels([])
             else:
-                ax.set_ylabel('{}\ny (mm)'.format(pre), labelpad=0)
+                ax.set_ylabel('$X=${}\n'.format(pre) + r'$y_i - y_j$ (mm)', labelpad=0)
 
             if i == 0 and j == 0:
                 ax.text(0.11, 0.95, 'A',
@@ -865,8 +869,8 @@ def figure_network_sketch():
 
     # make plot look nice
     ax1.set_aspect('equal')
-    ax1.set_xlabel('x (mm)', labelpad=-1)
-    ax1.set_ylabel('y (mm)', labelpad=-1)
+    ax1.set_xlabel('$x$ (mm)', labelpad=-1)
+    ax1.set_ylabel('$y$ (mm)', labelpad=-1)
     ax1.set_xticks([-2., -1, 0, 1., 2.])
     ax1.set_yticks([-2., -1, 0, 1., 2.])
     ax1.xaxis.set_tick_params(pad=-1)
