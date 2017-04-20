@@ -1070,9 +1070,9 @@ def figure_raster(times):
 Definition of helper functions for the spiking activity.
 '''
 
-def _plot_spikes(ax, dilute, nodes=pops['EX']['nodes'],
-                 events=pops['EX']['events'],
-                 layerdict=pops['EX']['layerdict'],
+def _plot_spikes(ax, dilute, nodes,
+                 events,
+                 layerdict,
                  color='r',
                  marker='.', poplabel='EX',
                  position_sorted=True):
