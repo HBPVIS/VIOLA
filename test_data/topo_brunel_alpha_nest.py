@@ -73,29 +73,6 @@ from mpl_toolkits.mplot3d import Axes3D
 random.seed(123456)
 
 '''
-Definition of functions used in this example. First, define the
-Lambert W function implemented in SLI. The second function
-computes the maximum of the postsynaptic potential for a synaptic
-input current of unit amplitude (1 pA) using the Lambert W
-function. Thus function will later be used to calibrate the synaptic
-weights.
-'''
-
-def LambertWm1(x):
-    nest.sli_push(x); nest.sli_run('LambertWm1'); y=nest.sli_pop()
-    return y
-
-def ComputePSPnorm(tauMem, CMem, tauSyn):
-  a = (tauMem / tauSyn)
-  b = (1.0 / tauSyn - 1.0 / tauMem)
-
-  # time of maximum
-  t_max = 1.0/b * ( -LambertWm1(-exp(-1.0/a)/a) - 1.0/a )
-
-  # maximum of PSP for current of unit amplitude
-  return exp(1.0)/(tauSyn*CMem*b) * ((exp(-t_max/tauMem) - exp(-t_max/tauSyn)) / b - t_max*exp(-t_max/tauSyn))
-
-'''
 Assigning the current time to a variable in order to determine the
 build time of the network.
 '''
@@ -107,7 +84,7 @@ Assigning the simulation parameters to variables.
 '''
 
 dt      = 0.1    # Simulation time resolution in ms
-simtime = 2000.  # Simulation time in ms
+simtime = 1500.  # Simulation time in ms
 transient = 500. # Simulation transient, discarding spikes at times < transient
 
 '''
@@ -156,10 +133,9 @@ neuron_params= {"C_m":        CMem,
                 "V_reset":    0.,
                 "V_m":        0.,
                 "V_th":       theta}
-J      = 0.5        # postsyaptic amplitude in mV (before: 0.1)
-J_unit = ComputePSPnorm(tauMem, CMem, tauSyn)
-J_ex   = J / J_unit # amplitude of excitatory postsynaptic current
-J_in   = -g*J_ex    # amplitude of inhibitory postsynaptic current
+
+J_ex = 100.       # postsynaptic amplitude in pA (before: 0.1 mV, converted to pA)
+J_in = -g*J_ex    # amplitude of inhibitory postsynaptic current
 
 '''
 Definition of the threshold rate, which is the external rate needed to fix
@@ -196,6 +172,8 @@ delay_ex_c = 0.5 # constant term for linear distance-dep. delay in mm (exc.)
 delay_ex_a = 0.5 # term for delay in mm
 delay_in_c = 0.5 # term for linear distance-dep. delay in mm (inh.)
 delay_in_a = 0.5 # term for delay in mm
+
+delay_stim = 0.5 # delay between Poisson input to stimulus, and stimulus and exc.
 
 pos_ex = list(((random.rand(2*NE) - 0.5) * extent_length).reshape(-1, 2))
 pos_in = list(((random.rand(2*NI) - 0.5) * extent_length).reshape(-1, 2))
@@ -288,7 +266,7 @@ conn_dict_in = {
 conn_dict_stim = {
     'connection_type': 'divergent',
     'weights' : J_ex,
-    'delays' : dt,
+    'delays' : delay_stim,
     'mask' : {
         'circular' : {
             'radius' : mask_radius_stim
@@ -485,7 +463,8 @@ Connect spike generator of external stimulus with the excitatory neurons.
 
 tp.ConnectLayers(layer_stim, layer_ex, conn_dict_stim)
 
-nest.Connect(pg_stim, nodes_stim, syn_spec={'weight': J_ex})
+nest.Connect(pg_stim, nodes_stim, syn_spec={'weight': J_ex,
+                                            'delay': delay_stim})
 
 '''
 Storage of the time point after the buildup of the network in a
@@ -1101,7 +1080,7 @@ def _plot_spikes(ax, dilute, nodes=pops['EX']['nodes'],
 def _plot_space_histogram(label, gs_cell, pops_list):
     gs_loc = gridspec.GridSpecFromSubplotSpec(1, 3, gs_cell, wspace=0.15)
 
-    binsize=0.05
+    binsize = 0.1 # should be the same as used for preprocessing
     bins = np.arange(-2, 2+binsize, binsize)
     xlists = []
     for x, gid0, senders in zip([np.array(pops['IN']['layerdict']['positions'])[:, 0],
@@ -1140,6 +1119,7 @@ def _plot_space_histogram(label, gs_cell, pops_list):
 
 def _plot_time_histogram(label, gs_cell, pops_list, times):
     gs_loc = gridspec.GridSpecFromSubplotSpec(3,1, gs_cell, hspace=0.15)
+    # binsize should be the same as used for preprocessing
     bins = np.arange(transient, simtime+1, 1) # 1 ms bins
     for i,pop in enumerate(pops_list):
         ax = plt.subplot(gs_loc[i,0])
@@ -1184,7 +1164,7 @@ def _plot_unit_histogram(label, gs_cell, pops_list):
 
     gs_loc = gridspec.GridSpecFromSubplotSpec(3, 1, gs_cell,
                                               height_ratios=ratios,
-                                              hspace=0.1)
+                                              hspace=0.25)
     for i,pop in enumerate(pops_list):
         ax = plt.subplot(gs_loc[i, 0])
 
@@ -1225,7 +1205,7 @@ def _plot_raster_unsorted(label, gs_cell, pops_list, times, dilute):
 
     gs_loc = gridspec.GridSpecFromSubplotSpec(3, 1, gs_cell,
                                               height_ratios=ratios,
-                                              hspace=0.1)
+                                              hspace=0.25)
     for i,pop in enumerate(pops_list):
         ax = plt.subplot(gs_loc[i,0])
         _plot_spikes(ax, dilute, nodes=pops[pop]['nodes'],
@@ -1237,16 +1217,18 @@ def _plot_raster_unsorted(label, gs_cell, pops_list, times, dilute):
         ax.set_xlim(times[0], times[1])
         ax.set_xticklabels([])
         ax.set_xlabel('')
-        ax.set_ylim(np.min(pops[pop]['nodes']), np.max(pops[pop]['nodes']))
-        ax.set_yticks([])
-        ax.set_yticklabels([])
-        ax.set_ylabel(pops[pop]['N']) # population size
+
+        min_node = np.min(pops[pop]['nodes'])
+        max_node = np.max(pops[pop]['nodes'])
+        ax.set_ylim([min_node, max_node])
+        ax.set_yticks([min_node, max_node])
+
         if i==0:
             ax.set_title('unsorted spike raster')
             ax.text(-0.05, 1.7, label, fontsize=16, ha='left',
                     va='bottom', fontweight='demibold', transform=ax.transAxes)
         if i==1:
-            ax.set_ylabel('population size\n' + str(pops[pop]['N']))
+            ax.set_ylabel('neuron ID')
     return
 
 
