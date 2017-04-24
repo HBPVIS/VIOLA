@@ -37,7 +37,6 @@ import neuron
 import quantities as pq
 import matplotlib.pyplot as plt
 
-
 def decimate(x, q=10, n=4, k=0.8, filterfun=ss.cheby1):
     """
     scipy.signal.decimate like downsampling using filtfilt instead of lfilter,
@@ -90,7 +89,46 @@ def decimate(x, q=10, n=4, k=0.8, filterfun=ss.cheby1):
     except:
         return y[::q]
 
-
+def compute_h(cellParams, synParams, electrodeParams, section='soma'):
+    # create ball soma and stick dendrite model
+    soma = neuron.h.Section(name='soma')
+    soma.diam = r_soma*2
+    soma.L = r_soma*2
+    
+    dend = neuron.h.Section(name='dend')
+    dend.diam = 5.
+    dend.L = 500.
+    
+    dend.connect(soma(1.), 0.)
+    
+    # instantiate LFPy.Cell class
+    cell = LFPy.Cell(**cellParams)
+    cell.set_pos(0, 0, 0)
+    cell.set_rotation(y=-np.pi/2)
+        
+    # instantiate LFPy.Synapse class
+    try:
+        assert(hasattr(neuron.h, 'AlphaISyn'))
+    except AttributeError:
+        raise AttributeError('run nrnivmodl inside this folder')
+    
+    # create synapses, distribute across entire section so we divide
+    # the total synapse input by number of segments in section
+    idx = cell.get_idx(section=section)
+    weight = synParams.pop('weight')
+    for i in idx:
+        syn = LFPy.Synapse(cell, idx=i, weight=weight / idx.size,
+                           **synParams)
+        syn.set_spike_times(np.array([lag]))
+    
+    # run simulation of extracellular potentials
+    cell.simulate(rec_imem=True)
+    
+    # instantiate RexExtElectrode class and compute the electrode signals    
+    electrode = LFPy.RecExtElectrode(cell=cell, **electrodeParams)
+    electrode.calc_lfp()
+        
+    return electrode.LFP
 
 print('perform spatiotemporal binning of network activity for LFPs')
 
@@ -117,7 +155,6 @@ preprocess = npr.ViolaPreprocessing(input_path=input_path,
                             spike_detector_label = 'spikes-',
                             TRANSIENT=500.,
                             BINSIZE_TIME=network.dt,
-                            # BINSIZE_TIME=1.,
                             BINSIZE_AREA=0.4,
 )
 
@@ -126,19 +163,19 @@ preprocess = npr.ViolaPreprocessing(input_path=input_path,
 preprocess.GIDs_corrected = preprocess.get_GIDs()
 positions_corrected = preprocess.get_positions()
 #bin-edge-coordinates in the spatially resolved spike histograms
-y, x = np.meshgrid(preprocess.pos_bins[:-1], preprocess.pos_bins[:-1])
+y, x = np.meshgrid(preprocess.pos_bins, preprocess.pos_bins)
 
 # compute for a sentral bin the unique distances to neighbouring and bin
 # counts at similar distances.
-r, r_counts = np.unique(np.round(np.sqrt(x**2 + y**2), decimals=10), return_counts=True)
+r, r_index, r_inverse, r_counts = np.unique(np.round(np.sqrt(x**2 + y**2),
+                                                     decimals=10),
+                                            return_index=True,
+                                            return_inverse=True,
+                                            return_counts=True)
 inds = r < np.sqrt(2*(preprocess.extent_length/2.)**2)
 r = r[inds]
 r_counts = r_counts[inds]
 
-# bin senterpoints (flattened)
-y, x = np.meshgrid(preprocess.pos_bins[:-1], preprocess.pos_bins[:-1])
-x = x.flatten() + .2
-y = y.flatten() + .2
 
 # temporal lag vector for the convolution. Temporal bin size of 1 ms is used.
 lag = 25
@@ -189,71 +226,50 @@ electrodeParams = dict(
     n = 200,
 )
 
-def compute_h(cellParams, synParams, electrodeParams, section='soma'):
-    # create ball soma and stick dendrite model
-    soma = neuron.h.Section(name='soma')
-    soma.diam = r_soma*2
-    soma.L = r_soma*2
-    
-    dend = neuron.h.Section(name='dend')
-    dend.diam = 5.
-    dend.L = 500.
-    
-    dend.connect(soma(1.), 0.)
-    
-    # instantiate LFPy.Cell class
-    cell = LFPy.Cell(**cellParams)
-    cell.set_pos(0, 0, 0)
-    cell.set_rotation(y=-np.pi/2)
-        
-    # instantiate LFPy.Synapse class
-    try:
-        assert(hasattr(neuron.h, 'AlphaISyn'))
-    except AttributeError:
-        raise AttributeError('run nrnivmodl inside this folder')
-    
-    # create synapses, distribute across entire section so we divide
-    # the total synapse input by number of segments in section
-    idx = cell.get_idx(section=section)
-    weight = synParams.pop('weight')
-    for i in idx:
-        syn = LFPy.Synapse(cell, idx=i, weight=weight / idx.size,
-                           **synParams)
-        syn.set_spike_times(np.array([lag]))
-    
-    # run simulation of extracellular potentials
-    cell.simulate(rec_imem=True)
-    
-    # instantiate RexExtElectrode class and compute the electrode signals    
-    electrode = LFPy.RecExtElectrode(cell=cell, **electrodeParams)
-    electrode.calc_lfp()
-    
-    return electrode.LFP
+# switch for rendering test plots
+test_plots = True
 
-# compute kernels for excitatory and inhibitory connections to the ball and stick
-H = dict()
-H['EX'] = compute_h(cellParams, synParams_ex, electrodeParams, section='dend')
-H['IN'] = compute_h(cellParams, synParams_in, electrodeParams, section='soma')
-H['STIM'] = H['EX']
+
+    
+
+
+# compute extracellular potentials across space for excitatory and inhibitory connections to the ball and stick,
+# using reconstruction array from np.unique to create a signal across 2D space
+H0 = dict()
+H0['EX'] = compute_h(cellParams, synParams_ex, electrodeParams, section='dend')[r_inverse].reshape(x.shape+(-1,))
+H0['IN'] = compute_h(cellParams, synParams_in, electrodeParams, section='soma')[r_inverse].reshape(x.shape+(-1,))
+H0['STIM'] = H0['EX']
 
 # average out-degrees computed from the fixed indegrees
-od_ex = network.N_neurons * network.CE / network.NE
-od_in = network.N_neurons * network.CI / network.NI
-od_stim = network.num_stim_conn
+outdegree_ex = network.N_neurons * network.CE / network.NE
+outdegree_in = network.N_neurons * network.CI / network.NI
+outdegree_stim = network.num_stim_conn
+
+# construct spatial convolution kernels for each unique distance r
+Hs = np.zeros(x.shape+(r.size,))
+for i, d in enumerate(r):
+    Hs[:, :, i] = (r[r_inverse].reshape(x.shape) == d).astype(float)
+    # Don't normalize such that sum over all entries is 1.
+    # (we scale signals up by indegree per bin)
+    # Hs[:, :, i] /= Hs[:, :, i].sum()
+    
 
 # modify convolution kernels to account for distance-dependent connection
 # probabilities and delays (as well as mean outdegree)
-
-for i, (X, outdegree) in enumerate(zip(preprocess.X, [od_ex, od_in, od_stim])):
+H = dict() # container.
+for i, (X, outdegree) in enumerate(zip(preprocess.X, [outdegree_ex, outdegree_in, outdegree_stim])):
     if X == 'EX':
         sigma = network.sigma_ex
+        mask_radius_stim = None
     elif X == 'IN':
         sigma = network.sigma_in
+        mask_radius_stim = None
     elif X == 'STIM':
         mask_radius_stim = network.mask_radius_stim
+        sigma = None
 
-    h0 = H[X]
-    h1 = np.zeros(h0.shape)
+    h0 = H0[X]
+    H[X] = np.zeros((r.size, h0.shape[-1]))
     
     for l, (d, count) in enumerate(zip(r, r_counts)):
         if X == 'STIM':
@@ -268,37 +284,48 @@ for i, (X, outdegree) in enumerate(zip(preprocess.X, [od_ex, od_in, od_stim])):
             delay = int((c + a*d) / network.dt) # unitless
         else:
             raise Exception
-        h_delay = np.zeros(h0.shape[1])
+        h_delay = np.zeros(h0.shape[-1])
         h_delay[int(lag / network.dt) + delay] = 1.
         
-        # distance-dependent connection probability:
-        if X != 'STIM':
-            p = np.exp(-d**2 / sigma**2) / np.sqrt(2*np.pi*sigma**2)
-        else:
-            if d < mask_radius_stim:
-                p = 1
-            else:
-                p = 0
-        # shift the corresponding LFP kernel in time according to delay
-        # and multiply with count of bins at the corresponding distance.
-        # We also multiply with the normal function value at this offset
-        # to accout for the distance-dependent connection probability.        
-        h1[l, ] = np.convolve(h0[l, ], h_delay, 'same')*count*p
+        # compute indegree per spatial bin at distance d as function of outdegree
+        if X == 'EX':
+            indegree = np.exp(-d**2 / sigma**2)*count / (np.exp(-r**2 / sigma**2)*r_counts).sum() * outdegree_ex
+        elif X == 'IN':
+            indegree = np.exp(-d**2 / sigma**2)*count / (np.exp(-r**2 / sigma**2)*r_counts).sum() * outdegree_in
+        elif X == 'STIM':
+            indegree = float(d < mask_radius_stim) / (r_counts*(r < mask_radius_stim)).sum() * outdegree_stim
+
         
-    # update kernel to modified kernel.
-    # The kernel is scaled by the outdegree (# target cells) of the
-    # sender population
-    H[X] = h1*outdegree
+        # translate h0 in time domain to accound for delay at this radius
+        h_delayed = np.zeros(H[X].shape)
+        for j, x in enumerate(h0.reshape((-1, H[X].shape[-1]))[r_index]):
+            h_delayed[j, ] = np.convolve(x, h_delay, 'same')
+        
+        # reshape into shape of h0 for spatial convolution:
+        h_delayed = h_delayed[r_inverse].reshape(h0.shape)        
+        
+        # spatial convolution with periodic boundaries, reshaped
+        for t in range(h0.shape[-1]):            
+            H[X][:, t] += ss.convolve2d(h_delayed[:, :, t], Hs[:, :, l], mode='same', boundary='symm').flatten()[r_index]*indegree
 
-    plt.matshow(h0)
-    plt.axis('tight')
-    plt.colorbar()
-    plt.matshow(h1)
-    plt.axis('tight')
-    plt.colorbar()
-plt.show()
+    if test_plots:
+        plt.figure()
+        plt.subplot(211)
+        im = plt.imshow(h0.reshape((-1, h0.shape[-1]))[r_index], interpolation='nearest')
+        plt.title(X)
+        plt.axis('tight')
+        plt.colorbar(im)
+        plt.subplot(212)
+        im=plt.imshow(H[X], interpolation='nearest')
+        plt.axis('tight')
+        plt.colorbar(im)
 
-raise Exception
+
+# bin senterpoints (flattened)
+y, x = np.meshgrid(preprocess.pos_bins[:-1], preprocess.pos_bins[:-1])
+x = x.flatten() + .2
+y = y.flatten() + .2
+
 
 
 # Container for reconstructed LFP per postsynaptic population
@@ -378,6 +405,8 @@ else:
     # will be identical by design, then, the compound signal
     LFP_approx = np.zeros_like(LFP_h[X])
     for key, value in LFP_h.items():
+        # subtract temporal mean in each channel
+        value = (value.T - value.mean(axis=1)).T
         LFP_approx += value
         np.savetxt(os.path.join(preprocess.output_path, key + 'LFPdata.lfp'),
                    value, fmt='%.4f', delimiter=', ')
@@ -387,7 +416,12 @@ else:
                fmt='%.4f', delimiter=', ')
 
 
-for value in LFP_h.values(): plt.matshow(value); plt.axis('tight'); plt.axis('tight'); plt.colorbar()
-plt.show()
+if test_plots:
+    for key, value in LFP_h.items():
+        value = (value.T - value.mean(axis=1)).T
+        plt.figure()
+        plt.imshow(value, interpolation='nearest'); plt.axis('tight'); plt.axis('tight'); plt.colorbar()
+        plt.title(key)
+    plt.show()
 
 print('done!')
