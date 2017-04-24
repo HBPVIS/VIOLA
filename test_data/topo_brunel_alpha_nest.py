@@ -121,7 +121,7 @@ PSP is J.
 
 tauSyn = 0.5    # synaptic time constant in ms
 tauMem = 20.    # time constant of membrane potential in ms
-CMem   = 250.   # capacitance of membrane in in pF
+CMem   = 100. #250.   # capacitance of membrane in in pF
 theta  = 20.    # membrane threshold potential in mV
 tRef   = 2.       # refractory period in ms
 neuron_params= {"C_m":        CMem,
@@ -134,7 +134,7 @@ neuron_params= {"C_m":        CMem,
                 "V_m":        0.,
                 "V_th":       theta}
 
-J_ex = 100.       # postsynaptic amplitude in pA (before: 0.1 mV, converted to pA)
+J_ex = 40. #100.       # postsynaptic amplitude in pA (before: 0.1 mV, converted to pA)
 J_in = -g*J_ex    # amplitude of inhibitory postsynaptic current
 
 '''
