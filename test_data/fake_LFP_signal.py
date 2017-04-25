@@ -114,7 +114,7 @@ def compute_h(L_dend, r_dend, r_soma, cellParams, synParams, electrodeParams, se
     try:
         assert(hasattr(neuron.h, 'AlphaISyn'))
     except AttributeError:
-        raise AttributeError('run nrnivmodl inside this folder')
+        raise AttributeError('no AlphaISyn mech found, run nrnivmodl inside this folder')
     
     # create synapses, distribute across entire section so we divide
     # the total synapse input by number of segments in section
@@ -151,13 +151,13 @@ else:
 preprocess = npr.ViolaPreprocessing(input_path=input_path,
                             output_path=output_path,
                             X = ['EX', 'IN', 'STIM'],
-                            t_sim = 2000.,
-                            dt = 0.1,
-                            extent_length = 4.,
+                            t_sim = network.simtime,
+                            dt = network.dt,
+                            extent_length = network.extent_length,
                             GID_filename = 'population_GIDs.dat',
                             position_filename_label = 'neuron_positions-',
                             spike_detector_label = 'spikes-',
-                            TRANSIENT=500.,
+                            TRANSIENT=network.transient,
                             BINSIZE_TIME=network.dt,
                             BINSIZE_AREA=0.4,
 )
@@ -207,9 +207,12 @@ cellParams = dict(
     morphology=None,
     Ra=Ra,
     cm=cm,
-    v_init=network.neuron_params['E_L'],
+    v_init=-70., #network.neuron_params['E_L'],
     passive=True,
-    passive_params = dict(g_pas=g_pas, e_pas=network.neuron_params['E_L']),
+    passive_params = dict(g_pas=g_pas,
+                          e_pas=-70.,
+                          # e_pas=network.neuron_params['E_L'],
+                          ),
     delete_sections=False,
     tstop=lag*2,
     dt=network.dt    
@@ -232,7 +235,7 @@ electrodeParams = dict(
     contact_shape='square',
     N = [[0, 0, 1]]*r.size,
     r = 400,
-    n = 200,
+    n = 1000,
 )
 
 # switch for rendering test plots
