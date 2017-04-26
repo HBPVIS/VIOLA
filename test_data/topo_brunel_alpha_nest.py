@@ -1121,7 +1121,8 @@ def _plot_space_histogram(label, gs_cell, pops_list):
 def _plot_time_histogram(label, gs_cell, pops_list, times):
     gs_loc = gridspec.GridSpecFromSubplotSpec(3,1, gs_cell, hspace=0.15)
     # binsize should be the same as used for preprocessing
-    bins = np.arange(transient, simtime+1, 1) # 1 ms bins
+    binsize = 1 # in ms
+    bins = np.arange(transient, simtime+binsize, binsize)
     for i,pop in enumerate(pops_list):
         ax = plt.subplot(gs_loc[i,0])
         ax.hist(pops[pop]['events']['times'], bins=bins, histtype='step',
@@ -1154,7 +1155,7 @@ def _plot_unit_histogram(label, gs_cell, pops_list):
             frac = 0.1
         ratios.append(frac)
 
-    binsize = 20. # neurons
+    binsize = 100. # neurons
 
     # maximum estimated spike count, used for setting xlim for all populations
     max_estim_cnt = 0
@@ -1165,7 +1166,7 @@ def _plot_unit_histogram(label, gs_cell, pops_list):
 
     gs_loc = gridspec.GridSpecFromSubplotSpec(3, 1, gs_cell,
                                               height_ratios=ratios,
-                                              hspace=0.25)
+                                              hspace=0.3)
     for i,pop in enumerate(pops_list):
         ax = plt.subplot(gs_loc[i, 0])
 
@@ -1206,7 +1207,7 @@ def _plot_raster_unsorted(label, gs_cell, pops_list, times, dilute):
 
     gs_loc = gridspec.GridSpecFromSubplotSpec(3, 1, gs_cell,
                                               height_ratios=ratios,
-                                              hspace=0.25)
+                                              hspace=0.3)
     for i,pop in enumerate(pops_list):
         ax = plt.subplot(gs_loc[i,0])
         _plot_spikes(ax, dilute, nodes=pops[pop]['nodes'],
