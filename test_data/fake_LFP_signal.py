@@ -234,7 +234,7 @@ electrodeParams = dict(
     # report the averaged LFP within a square with side length 400 um
     contact_shape='square',
     N = [[0, 0, 1]]*r.size,
-    r = 400,
+    r = preprocess.BINSIZE_AREA*1E3,
     n = 1000,
 )
 
@@ -253,8 +253,8 @@ H0['IN'] = compute_h(L_dend, r_dend, r_soma, cellParams, synParams_in, electrode
 H0['STIM'] = H0['EX']
 
 # average out-degrees computed from the fixed indegrees
-outdegree_ex = network.N_neurons * network.CE / network.NE
-outdegree_in = network.N_neurons * network.CI / network.NI
+outdegree_ex = network.N_neurons * network.epsilon
+outdegree_in = network.N_neurons * network.epsilon
 outdegree_stim = network.num_stim_conn
 
 # construct spatial convolution kernels for each unique distance r
