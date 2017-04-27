@@ -142,9 +142,9 @@ Visu.Renderer2D.prototype = {
     var scaling = [(this.miniW - this.neuronDisplaySize) / this.data.xSize,
                    (this.miniH - this.neuronDisplaySize) / this.data.ySize];
     for (var c = 0; c < this.data.nLayers; c++) {
-      this.mCtx[c].fillStyle = "black";
-      this.mCtx[c].fillRect(this.offsetW, this.offsetH, this.miniW, this.miniH);
       if (this.data.dataType == "binned") {
+        this.mCtx[c].fillStyle = "black";
+        this.mCtx[c].fillRect(this.offsetW, this.offsetH, this.miniW, this.miniH);
         if (this.data.mReady[c]) {
           for (var i = 0; i < this.data.xNeurons; i++) {
             for (var j = 0; j < this.data.yNeurons; j++) {
@@ -162,6 +162,12 @@ Visu.Renderer2D.prototype = {
           };
         };
       } else if (this.data.dataType == "neuron") {
+        // white background with black frame
+        this.mCtx[c].fillStyle = "white";
+        this.mCtx[c].fillRect(this.offsetW, this.offsetH, this.miniW, this.miniH);
+        this.mCtx[c].lineWidth="1";
+        this.mCtx[c].rect(this.offsetW, this.offsetH, this.miniW, this.miniH);
+        this.mCtx[c].stroke();
         if (this.data.mReady[c] && this.data.posReady[c]) {
           spikes = this.data.neuronSpikes[c][index];
           if (spikes !== undefined) {
@@ -181,7 +187,11 @@ Visu.Renderer2D.prototype = {
       };
       // time counter
       if (c == 0){
-        this.mCtx[c].fillStyle = "white";
+        if (this.data.dataType == "binned") {
+          this.mCtx[c].fillStyle = "white";
+        } else if (this.data.dataType == "neuron") {
+          this.mCtx[c].fillStyle = "black";
+        }
         this.mCtx[c].fillText(this.data.currTime + "/" +
                                 this.data.simulationLength + " ms",
                               this.offsetW + 2,
