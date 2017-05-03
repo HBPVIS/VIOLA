@@ -99,7 +99,7 @@ epsilon = 0.1  # connection probability
 Definition of the number of neurons in the network.
 '''
 
-order     = 5000   # (before: 2500)
+order     = 5000    # (before: 2500)
 NE        = 4*order # number of excitatory neurons
 NI        = 1*order # number of inhibitory neurons
 N_neurons = NE+NI   # number of neurons in total
@@ -119,11 +119,11 @@ The synaptic currents are normalized such that the amplitude of the
 PSP is J.
 '''
 
-tauSyn = 0.5    # synaptic time constant in ms
-tauMem = 20.    # time constant of membrane potential in ms
-CMem   = 100. #250.   # capacitance of membrane in in pF
-theta  = 20.    # membrane threshold potential in mV
-tRef   = 2.       # refractory period in ms
+tauSyn = 0.5  # synaptic time constant in ms
+tauMem = 20.  # time constant of membrane potential in ms
+CMem   = 100. # capacitance of membrane in in pF
+theta  = 20.  # membrane threshold potential in mV
+tRef   = 2.   # refractory period in ms
 neuron_params= {"C_m":        CMem,
                 "tau_m":      tauMem,
                 "tau_syn_ex": tauSyn,
@@ -134,39 +134,38 @@ neuron_params= {"C_m":        CMem,
                 "V_m":        0.,
                 "V_th":       theta}
 
-J_ex = 40. #100.       # postsynaptic amplitude in pA (before: 0.1 mV, converted to pA)
-J_in = -g*J_ex    # amplitude of inhibitory postsynaptic current
+J_ex = 40.     # postsynaptic amplitude in pA (before: 0.1 mV, converted to pA)
+J_in = -g*J_ex # amplitude of inhibitory postsynaptic current
 
 '''
 Definition of the threshold rate, which is the external rate needed to fix
-the membrane potential around its threshold, the external firing rate
-and the rate of the Poisson generator which is multiplied by the
-in-degree CE and converted to Hz by multiplication by 1000.
+the membrane potential around its threshold (assuming just one external
+connection). The rate of the Poisson generator is given in Hz. It is the
+threshold rate multiplied with the relative rate eta.
 '''
 
-nu_th  = (theta * CMem) / (J_ex*CE*exp(1)*tauMem*tauSyn)
-nu_ex  = eta*nu_th
-p_rate = 1000.*nu_ex*CE
+nu_th  = (theta * CMem) / (J_ex*exp(1)*tauMem*tauSyn)
+p_rate = eta * nu_th * 1000.
 
 '''
 Parameters for a spatially confined stimulus.
 '''
 
-stim_radius = 0.5       # radius of a circle in mm for location of stimulus
-mask_radius_stim = 0.1  # mask radius of stimulus in mm around each parrot neuron
-num_stim_conn = 300     # number of connections inside mask_radius_stim
-stim_start = 1000.      # start time of stimulus in ms
-stim_duration = 50.     # duration of the stimulus onset in ms
-stim_rate = 300.        # rate of parrot neurons in Hz during stimulus activation
+stim_radius = 0.5      # radius of a circle in mm for location of stimulus
+mask_radius_stim = 0.1 # mask radius of stimulus in mm around each parrot neuron
+num_stim_conn = 300    # number of connections inside mask_radius_stim
+stim_start = 1000.     # start time of stimulus in ms
+stim_duration = 50.    # duration of the stimulus onset in ms
+stim_rate = 300.       # rate of parrot neurons in Hz during stimulus activation
 
 '''
 Definition of topology-specific parameters. Connection routines use fixed
 indegrees = convergent connections with a fixed number of connections.
 '''
 
-extent_length = 4.   # in mm (layer size = extent_length x extent_length)
-sigma_ex = 0.3      # width of Gaussian profile for excitatory connections in mm
-sigma_in = 0.3       # width of Gaussian profile for inhibitory connections in mm
+extent_length = 4. # in mm (layer size = extent_length x extent_length)
+sigma_ex = 0.3     # width of Gaussian profile for excitatory connections in mm
+sigma_in = 0.3     # width of Gaussian profile for inhibitory connections in mm
 
 delay_ex_c = 0.5 # constant term for linear distance-dep. delay in mm (exc.)
 delay_ex_a = 0.5 # term for delay in mm
@@ -396,9 +395,10 @@ if __name__ == '__main__':
     External stimulus.
     '''
     
-    pg_stim = nest.Create('poisson_generator', 1, {'start': stim_start,
-                                                   'stop': stim_start + stim_duration,
-                                                   'rate': stim_rate})
+    pg_stim = nest.Create('poisson_generator', 1,
+                          {'start': stim_start,
+                           'stop': stim_start + stim_duration,
+                           'rate': stim_rate})
     
     print("Connecting devices")
     
