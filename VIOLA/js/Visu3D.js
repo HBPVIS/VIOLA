@@ -54,7 +54,7 @@ Visu.Renderer3D = function(panel, data) {
     this.mmToPixel = 100;
     this.xSize = data.xSize * this.mmToPixel;
     this.ySize = data.ySize * this.mmToPixel;
-    this.boxSize = 4;
+    this.boxSize = 8;
     this.geomCreated = [];
   };
 
