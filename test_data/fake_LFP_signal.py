@@ -26,7 +26,12 @@ Usage:
 
     python fake_LFP_signal.py out_raw out_proc
 '''
+
 from __future__ import division
+
+import matplotlib
+matplotlib.use('Agg')
+
 import sys
 import os
 import numpy as np
