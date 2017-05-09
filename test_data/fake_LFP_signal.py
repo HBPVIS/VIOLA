@@ -29,11 +29,11 @@ Usage:
 
 from __future__ import division
 
-import matplotlib
-matplotlib.use('Agg')
-
-import sys
 import os
+if 'localhost' in os.environ['DISPLAY']:
+    import matplotlib
+    matplotlib.use('Agg')
+import sys
 import numpy as np
 import scipy.signal as ss
 import nest_preprocessing as npr
@@ -108,6 +108,7 @@ def compute_h(L_dend, r_dend, r_soma, cellParams, synParams, electrodeParams, se
     dend.diam = r_dend*2.
     dend.L = L_dend
     
+    # connect
     dend.connect(soma(1.), 0.)
     
     # instantiate LFPy.Cell class
@@ -136,7 +137,38 @@ def compute_h(L_dend, r_dend, r_soma, cellParams, synParams, electrodeParams, se
     # instantiate RexExtElectrode class and compute the electrode signals    
     electrode = LFPy.RecExtElectrode(cell=cell, **electrodeParams)
     electrode.calc_lfp()
+    
+    
+    if test_plots:
+        from  matplotlib.animation import FuncAnimation
         
+        electrode_xz = LFPy.RecExtElectrode(cell=cell, **electrodeParams_xz)
+        electrode_xz.calc_lfp()
+        
+        absmax = abs(electrode_xz.LFP).max() / 2.
+        
+        fig, ax = plt.subplots(1,1)
+        fig.suptitle(section)
+        im = ax.imshow(electrode_xz.LFP[:, 250].reshape(X_xz.shape), cmap='PRGn', vmin=-absmax, vmax=absmax, interpolation='nearest', origin='lower',
+                  extent=[electrode_xz.x.min(), electrode_xz.x.max(), electrode_xz.z.min(), electrode_xz.z.max()])
+        plt.colorbar(im)
+        def animate(i):
+            im.set_data(electrode_xz.LFP[:, 250+i].reshape(X_xz.shape))
+            return im,
+        
+        anim = FuncAnimation(fig, animate,
+                             frames=100, interval=20)
+        plt.show()
+        electrode_xz.cell = None
+        
+    # clean up namespace, delete all section references
+    electrode.cell = None
+    syn = None
+    cell = None
+    dend = None
+    soma = None
+    neuron.h('forall delete_section()')
+    
     return electrode.LFP
 
 print('perform spatiotemporal binning of network activity for LFPs')
@@ -241,6 +273,19 @@ electrodeParams = dict(
     r = preprocess.BINSIZE_AREA*1E3,
     n = 1000,
 )
+
+# additional set of electrode parameters, looking at potentials in the xz-pane
+x_xz = np.linspace(0, 200, 21)
+z_xz = np.linspace(-100, 600, 71)
+X_xz, Z_xz = np.meshgrid(x_xz, z_xz)
+electrodeParams_xz = dict(
+    x = X_xz.flatten(),
+    y = np.zeros(X_xz.size),
+    z = Z_xz.flatten(),
+    sigma = 0.3,
+    method='soma_as_point',
+)
+
 
 # switch for rendering test plots
 test_plots = True
@@ -439,5 +484,29 @@ if test_plots:
         plt.imshow(value, interpolation='nearest'); plt.axis('tight'); plt.axis('tight'); plt.colorbar()
         plt.title(key)
     plt.show()
+
+
+
+
+    from  matplotlib.animation import FuncAnimation
+    
+    fig, ax = plt.subplots(1,1)
+    fig.suptitle('LFP, t=0')
+    shape = (preprocess.pos_bins.size -1, preprocess.pos_bins.size -1)
+    absmax = abs(LFP_approx).max() / 5
+    im = ax.imshow(LFP_approx[:, 0].reshape(shape), cmap='PRGn', vmin=-absmax, vmax=absmax, interpolation='nearest', origin='lower',
+              extent=[preprocess.pos_bins.min(), preprocess.pos_bins.max(), preprocess.pos_bins.min(), preprocess.pos_bins.max()])
+    plt.colorbar(im)
+    def animate(i):
+        fig.suptitle('LFP, t={}'.format(i))
+        im.set_data(LFP_approx[:, i].reshape(shape))
+        return im,
+    
+    anim = FuncAnimation(fig, animate,
+                         frames=LFP_approx.shape[1], interval=20)
+    
+    plt.show()
+        
+
 
 print('done!')
