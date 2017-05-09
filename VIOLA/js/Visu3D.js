@@ -1914,9 +1914,10 @@ Visu.Renderer3D.prototype = {
     if (val > 1) val = 1;
 
     if (val < 0) { // linear scaling between cNeg and c0
-        return "rgb(" + Math.floor(cNeg[0]-(c0[0]-cNeg[0])*val) + "," +
-                        Math.floor(cNeg[1]-(c0[1]-cNeg[1])*val) + "," +
-                        Math.floor(cNeg[2]-(c0[2]-cNeg[2])*val) + ")";
+        return "rgb(" + Math.floor(c0[0]+(c0[0]-cNeg[0])*val) + "," +
+                        Math.floor(c0[1]+(c0[1]-cNeg[1])*val) + "," +
+                        Math.floor(c0[2]+(c0[2]-cNeg[2])*val) + ")";
+
     }
     else { // linear scaling between c0 and cPos
         return "rgb(" + Math.floor(c0[0]+(cPos[0]-c0[0])*val) + "," +
