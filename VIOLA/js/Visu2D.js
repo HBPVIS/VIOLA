@@ -13,7 +13,11 @@ Visu.Renderer2D = function(panel, data, name) {
   this.miniLH = 40;
 
   this.data = data;
-
+  
+ 
+  this.colorTable = chroma.scale(['black','red','yellow','white']).correctLightness();
+  //this.colorTable = chroma.scale(['black','purple','red','white']).correctLightness();
+  //this.colorTable = chroma.scale(['black','red','yellow','white']);
 
   this.miniRectW = this.miniW / this.data.xNeurons;
   this.miniRectH = this.miniH / this.data.yNeurons;
@@ -111,14 +115,17 @@ Visu.Renderer2D.prototype = {
 
   colorRect: function(d) {
     d = d / this.data.maxSpikesCutoff;
-    if (d < 0.33)
-      return "rgb(" + Math.round(3 * d * 255) + ",0,0)";
-    else if (d < 0.66)
-      return "rgb(255," + Math.round(255 * (d - 0.33) * 3) + ",0)";
-    else if (d < 1)
-      return "rgb(255,255," + Math.round(255 * (d - 0.66) * 3) + ")";
-    else
-      return "rgb(255,255,255)"; // white above cutoff limit
+    // if (d < 0.33)
+      // return "rgb(" + Math.round(3 * d * 255) + ",0,0)";
+    // else if (d < 0.66)
+      // return "rgb(255," + Math.round(255 * (d - 0.33) * 3) + ",0)";
+    // else if (d < 1)
+      // return "rgb(255,255," + Math.round(255 * (d - 0.66) * 3) + ")";
+    // else
+      // return "rgb(255,255,255)"; // white above cutoff limit
+	if ( d >= 1 ) d = 1;
+	return "rgb(" + this.colorTable(d).get('rgb.r') + "," + this.colorTable(d).get('rgb.g') + "," + this.colorTable(d).get('rgb.b') + ")";
+	//return "rgb(0,0,0)";
   },
 
   disableDrag: function(v) {
@@ -230,10 +237,21 @@ Visu.Renderer2D.prototype = {
     };
 
     var grd = this.mCtxL.createLinearGradient(10, 0, this.miniLW - 10, 0);
-    grd.addColorStop(0, "rgb(0,0,0)");
-    grd.addColorStop(0.33, "rgb(255,0,0)");
-    grd.addColorStop(0.66, "rgb(255,255,0)");
-    grd.addColorStop(1, "rgb(255,255,255)");
+    // grd.addColorStop(0, "rgb(0,0,0)");
+    // grd.addColorStop(0.33, "rgb(255,0,0)");
+    // grd.addColorStop(0.66, "rgb(255,255,0)");
+    // grd.addColorStop(1, "rgb(255,255,255)");
+	
+	// grd.addColorStop(0, "rgb(" + this.colorTable(0.0).get('rgb.r') + "," + this.colorTable(0.0).get('rgb.g') + "," + this.colorTable(0.0).get('rgb.b') + ")");
+    // grd.addColorStop(0.33, "rgb(" + this.colorTable(0.33).get('rgb.r') + "," + this.colorTable(0.33).get('rgb.g') + "," + this.colorTable(0.33).get('rgb.b') + ")");
+    // grd.addColorStop(0.66, "rgb(" + this.colorTable(0.66).get('rgb.r') + "," + this.colorTable(0.66).get('rgb.g') + "," + this.colorTable(0.66).get('rgb.b') + ")");
+    // grd.addColorStop(1, "rgb(" + this.colorTable(1.0).get('rgb.r') + "," + this.colorTable(1.0).get('rgb.g') + "," + this.colorTable(1.0).get('rgb.b') + ")");
+	
+	for ( var i = 0.0; i <= 1.0; i += 0.1) {
+		console.log(i);
+		grd.addColorStop(i, "rgb(" + this.colorTable(i).get('rgb.r') + "," + this.colorTable(i).get('rgb.g') + "," + this.colorTable(i).get('rgb.b') + ")");
+	}
+	
     this.mCtxL.fillStyle = "black";
     this.mCtxL.fillRect(10, 0, this.miniLW - 20, 10);
     this.mCtxL.fillStyle = grd;
