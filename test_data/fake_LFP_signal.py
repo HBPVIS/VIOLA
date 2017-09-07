@@ -111,8 +111,13 @@ def compute_h(L_dend, r_dend, r_soma, cellParams, synParams, electrodeParams, se
     # connect
     dend.connect(soma(1.), 0.)
     
+    # define SectionList
+    morphology=neuron.h.SectionList()
+    morphology.append(sec=soma)
+    morphology.append(sec=dend)
+    
     # instantiate LFPy.Cell class
-    cell = LFPy.Cell(**cellParams)
+    cell = LFPy.Cell(morphology=morphology, **cellParams)
     cell.set_pos(0, 0, 0)
     cell.set_rotation(y=-np.pi/2)
         
@@ -165,9 +170,9 @@ def compute_h(L_dend, r_dend, r_soma, cellParams, synParams, electrodeParams, se
     electrode.cell = None
     syn = None
     cell = None
+    morphology = None
     dend = None
     soma = None
-    neuron.h('forall delete_section()')
     
     return electrode.LFP
 
@@ -241,7 +246,6 @@ r_soma = (r_soma / pq.um).simplified
 g_pas = (g_pas / (pq.S / pq.cm**2)).simplified
 
 cellParams = dict(
-    morphology=None,
     Ra=Ra,
     cm=cm,
     v_init=network.neuron_params['E_L'],
@@ -297,8 +301,8 @@ test_plots = True
 # compute extracellular potentials across space for excitatory and inhibitory connections to the ball and stick,
 # using reconstruction array from np.unique to create a signal across 2D space
 H0 = dict()
-H0['EX'] = compute_h(L_dend, r_dend, r_soma, cellParams, synParams_ex, electrodeParams, section='dend')[r_inverse].reshape(x.shape+(-1,))
-H0['IN'] = compute_h(L_dend, r_dend, r_soma, cellParams, synParams_in, electrodeParams, section='soma')[r_inverse].reshape(x.shape+(-1,))
+H0['EX'] = compute_h(L_dend, r_dend, r_soma, cellParams, dict(**synParams_ex), electrodeParams, section='dend')[r_inverse].reshape(x.shape+(-1,))
+H0['IN'] = compute_h(L_dend, r_dend, r_soma, cellParams, dict(**synParams_in), electrodeParams, section='soma')[r_inverse].reshape(x.shape+(-1,))
 H0['STIM'] = H0['EX']
 
 # average out-degrees computed from the fixed indegrees
