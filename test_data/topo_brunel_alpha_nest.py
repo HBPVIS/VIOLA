@@ -42,7 +42,8 @@ Importing all necessary modules for simulation, analysis and plotting.
 '''
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
+# matplotlib.style.use('classic')
 
 from scipy.optimize import fsolve
 
@@ -725,10 +726,12 @@ def figure_network_sketch():
     # set up figure
     fig = plt.figure(figsize=(13,5))
     # grid spec for left and right panel
-    gs = gridspec.GridSpec(1, 2, wspace=0.5)
-
+    gs1 = gridspec.GridSpec(1, 10, wspace=0.0, left=0.05, right=1.05, bottom=0., top=1)
+    ax1 = plt.subplot(gs1[0, 3:], projection='3d')
+    
 
     # plot connectivity using ConnPlotter's style
+    gs = gridspec.GridSpec(1, 3, wspace=0.5, left=0.05, right=1.)
     gs0 = gridspec.GridSpecFromSubplotSpec(3, 2, subplot_spec=gs[0,0],
                                            wspace=0.01)
 
@@ -824,7 +827,7 @@ def figure_network_sketch():
                 ax.set_ylabel('$X=${}\n'.format(pre) + r'$y_i - y_j$ (mm)', labelpad=0)
 
             if i == 0 and j == 0:
-                ax.text(0.11, 0.95, 'A',
+                ax.text(0.05, 0.95, 'A',
                     horizontalalignment='center',
                     verticalalignment='center',
                     fontsize=16, fontweight='demibold',
@@ -832,8 +835,8 @@ def figure_network_sketch():
 
 
     # network sketch
-    ax1 = plt.subplot(gs[0, 1], projection='3d')
-    ax1.text2D(0.61, 0.95, 'B',
+    # ax1 = plt.subplot(gs1[0, 3:], projection='3d')
+    ax1.text2D(0.4, 0.95, 'B',
         horizontalalignment='center',
         verticalalignment='center',
         fontsize=16, fontweight='demibold',
@@ -848,11 +851,14 @@ def figure_network_sketch():
     plot_dots(ax1, dots)
 
     # make plot look nice
-    ax1.set_aspect('equal')
+    # ax1.set_aspect('equal')
+    # ax1.set_aspect('tight')
     ax1.set_xlabel('$x$ (mm)', labelpad=-1)
     ax1.set_ylabel('$y$ (mm)', labelpad=-1)
     ax1.set_xticks([-2., -1, 0, 1., 2.])
     ax1.set_yticks([-2., -1, 0, 1., 2.])
+    ax1.set_xlim(-1.95, 1.95)
+    ax1.set_ylim(-1.95, 1.95)
     ax1.xaxis.set_tick_params(pad=-1)
     ax1.yaxis.set_tick_params(pad=-1)
     ax1.w_zaxis.line.set_lw(0.)
@@ -884,7 +890,7 @@ def figure_network_sketch():
     ax1.legend(handles, labels, numpoints=1, loc=2, bbox_to_anchor=(0.7, 1.),
               fontsize=10)
 
-    ax1.view_init(elev=12, azim=-60)
+    ax1.view_init(elev=20, azim=-60)
 
     fig.savefig(os.path.join(spike_output_path, 'network_sketch.pdf'), dpi=160,
                 bbox_inches='tight')
