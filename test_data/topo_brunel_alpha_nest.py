@@ -42,8 +42,7 @@ Importing all necessary modules for simulation, analysis and plotting.
 '''
 
 import matplotlib
-# matplotlib.use('Agg')
-# matplotlib.style.use('classic')
+matplotlib.use('Agg')
 
 from scipy.optimize import fsolve
 
@@ -887,13 +886,13 @@ def figure_network_sketch():
          'source',
          'exc. connection',
          'inh. connection']
-    ax1.legend(handles, labels, numpoints=1, loc=2, bbox_to_anchor=(0.7, 1.),
+    ax1.legend(handles, labels, numpoints=1, loc=2, bbox_to_anchor=(0.7, 0.9),
               fontsize=10)
 
     ax1.view_init(elev=20, azim=-60)
 
     fig.savefig(os.path.join(spike_output_path, 'network_sketch.pdf'), dpi=160,
-                bbox_inches='tight')
+                bbox_inches=0)
 
 '''
 Definition of helper functions for the network sketch.
