@@ -42,7 +42,7 @@ Importing all necessary modules for simulation, analysis and plotting.
 '''
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 
 from scipy.optimize import fsolve
 
@@ -69,6 +69,11 @@ from matplotlib.patches import Patch
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d import Axes3D
+
+plt.rcParams.update({
+    'axes.xmargin': 0.0,
+    'axes.ymargin': 0.0,
+})
 
 random.seed(123456)
 
@@ -617,14 +622,14 @@ if __name__ == '__main__':
     pops['STIM']['events'] = nest.GetStatus(stim_spikes, 'events')[0]
     
     # population colors
-    pops['EX']['color'] =  mpc.hex2color('#b22222')       # firebrick
-    pops['IN']['color'] =  mpc.hex2color('#0000cd')       # MediumBlue
+    pops['EX']['color'] =  mpc.hex2color('#0000cd')       # MediumBlue
+    pops['IN']['color'] =  mpc.hex2color('#b22222')       # firebrick
     pops['STIM']['color'] =  mpc.hex2color('#696969')     # DimGray
     
     # population colors (just darker than population colors
-    pops['EX']['conn_color'] = mpc.hex2color('#ff3030')   # firebrick1
-    pops['IN']['conn_color'] = mpc.hex2color('#4169e1')   # RoyalBlue
-    pops['STIM']['conn_color'] = mpc.hex2color('#ff3030') # firebrick1
+    pops['EX']['conn_color'] = mpc.hex2color('#4169e1')   # RoyalBlue
+    pops['IN']['conn_color'] = mpc.hex2color('#ff3030')   # firebrick1
+    pops['STIM']['conn_color'] = mpc.hex2color('#4169e1') # RoyalBlue
     
     # targets of the neuron type
     pops['EX']['tgts'] = ['EX', 'IN']
@@ -756,7 +761,7 @@ def figure_network_sketch():
                         weights = epsilon_stim = num_stim_conn*N_stim / NE * cDict['weights']
                         C[np.sqrt(X**2 + Y**2) <= cDict['mask']['circular']['radius']] = weights
                         # cmap = 'gray_r'
-                        colors = [(1, 1, 1), (1, 0, 0)]
+                        colors = [(1, 1, 1), (0, 0, 1)]
                         cmap =  LinearSegmentedColormap.from_list('reds', colors, N=64)
                         vmin = 0
                         vmax = weights
@@ -770,26 +775,26 @@ def figure_network_sketch():
                             weights = cDict['weights']*epsilon
                             C[mask] = weights*np.exp(-(X[mask]**2 + Y[mask]**2) / (2*sigma**2)) # / (2*np.pi*sigma**2)
                             if weights > 0:
-                                colors = [(1, 1, 1), (1, 0, 0)]
-                                cmap =  LinearSegmentedColormap.from_list('reds', colors, N=64)
+                                colors = [(1, 1, 1), (0, 0, 1)]
+                                cmap =  LinearSegmentedColormap.from_list('blues', colors, N=64)
                                 vmin = 0
                                 vmax = weights
                             else:
-                                colors = [(0, 0, 1), (1, 1, 1)]
-                                cmap =  LinearSegmentedColormap.from_list('blues', colors, N=64)
+                                colors = [(1, 0, 0), (1, 1, 1)]
+                                cmap =  LinearSegmentedColormap.from_list('reds', colors, N=64)
                                 vmin = weights
                                 vmax = 0
                         else:
                             weights = cDict['weights']
                             C = weights*np.exp(-(X**2 + Y**2) / (2*sigma**2)) # / (2*np.pi*sigma**2)
                             if weights > 0:
-                                colors = [(1, 1, 1), (1, 0, 0)]
-                                cmap =  LinearSegmentedColormap.from_list('reds', colors, N=64)
+                                colors = [(1, 1, 1), (0, 0, 1)]
+                                cmap =  LinearSegmentedColormap.from_list('blues', colors, N=64)
                                 vmin = 0
                                 vmax = weights
                             else:
-                                colors = [(0, 0, 1), (1, 1, 1)]
-                                cmap =  LinearSegmentedColormap.from_list('blues', colors, N=64)
+                                colors = [(1, 0, 0), (1, 1, 1)]
+                                cmap =  LinearSegmentedColormap.from_list('reds', colors, N=64)
                                 vmin = weights
                                 vmax = 0
                     except KeyError as ae:
@@ -891,7 +896,7 @@ def figure_network_sketch():
 
     ax1.view_init(elev=20, azim=-60)
 
-    fig.savefig(os.path.join(spike_output_path, 'network_sketch.pdf'), dpi=160,
+    fig.savefig(os.path.join(spike_output_path, 'network_sketch.pdf'), dpi=320,
                 bbox_inches=0)
 
 '''
@@ -902,8 +907,12 @@ def plot_layer(ax, pop, pops_list):
     # plot neurons at their original location
     pos = np.array(pops[pop]['pos']).transpose()
     z0 = pops_list.index(pop)
-    ax.plot(pos[0], pos[1], zs=z0, marker='o', markeredgecolor='none',
-            linestyle='none', markersize=1, color=pops[pop]['color'],
+    ax.plot(pos[0], pos[1], zs=z0, 
+            marker=',',
+            # marker='o', markeredgecolor='none',
+            linestyle='None',
+            # markersize=1,
+            color=pops[pop]['color'],
             alpha=1.)
     ax.text(-2, -2.8, z0+0.3, pop)
     return
@@ -999,7 +1008,7 @@ def figure_raster(times):
     print('  Diluting spike number: {}'.format(dilute))
 
 
-    fig = plt.figure(figsize=(8., 8.))
+    fig = plt.figure(figsize=(13., 8.))
     fig.subplots_adjust(top=0.94, bottom=0.06, left=0.11, right=0.96,
                         wspace=0.3, hspace=1.)
     gs = gridspec.GridSpec(6,5)
@@ -1008,13 +1017,13 @@ def figure_raster(times):
     # A: unsorted raster
     gs_cell = gs[:2, :4]
     pops_list = ['STIM', 'EX', 'IN'] # top to bottom
-    _plot_raster_unsorted('A', gs_cell, pops_list, times, dilute)
+    ax0 = _plot_raster_unsorted('A', gs_cell, pops_list, times, dilute)
 
 
     # B: spike count histogram over unit
     gs_cell = gs[:2, 4]
     pops_list = ['STIM', 'EX', 'IN']
-    _plot_unit_histogram('B', gs_cell, pops_list)
+    _plot_unit_histogram('B', gs_cell, pops_list, sharey=ax0)
 
 
     # C: sorted raster
@@ -1046,7 +1055,7 @@ def figure_raster(times):
               'IN']
     ax.legend(handles, labels, loc='center')
 
-    fig.savefig(os.path.join(spike_output_path, 'raster.pdf'), dpi=160)
+    fig.savefig(os.path.join(spike_output_path, 'raster.pdf'), dpi=320)
 
 
 '''
@@ -1057,7 +1066,7 @@ def _plot_spikes(ax, dilute, nodes,
                  events,
                  layerdict,
                  color='r',
-                 marker='.', poplabel='EX',
+                 marker=',', poplabel='EX',
                  position_sorted=True):
     '''
     Plots unsorted or sorted spike raster, flexible for both populations.
@@ -1078,8 +1087,8 @@ def _plot_spikes(ax, dilute, nodes,
 
             X = r_[X, zeros_like(t) + pos]
 
-    ax.plot(T[::dilute], X[::dilute], marker, markersize=1., color=color, label=poplabel,
-                rasterized=True)
+    ax.plot(T[::dilute], X[::dilute], marker, markersize=.1, color=color, label=poplabel,
+                rasterized=False)
     return
 
 
@@ -1107,7 +1116,7 @@ def _plot_space_histogram(label, gs_cell, pops_list):
 
     for i,pop in enumerate(pops_list):
         ax = plt.subplot(gs_loc[0,i])
-        ax.hist(data[pop], bins=bins, histtype='step',
+        ax.hist(data[pop], bins=bins, histtype='stepfilled',
                 color=pops[pop]['color'], orientation='horizontal')
         ax.set_ylim(bins[0], bins[-1])
         ax.set_yticklabels([])
@@ -1118,7 +1127,7 @@ def _plot_space_histogram(label, gs_cell, pops_list):
             ax.text(-0.6, 1.05, label, ha='left', va='bottom', fontsize=16,
                     fontweight='demibold', transform=ax.transAxes)
         if i==len(pops_list)/2:
-            ax.set_title('spike count')
+            ax.set_title('spike count\n' + r'($\Delta={}$ mm)'.format(binsize))
             ax.set_xlabel('count')
     return
 
@@ -1130,14 +1139,14 @@ def _plot_time_histogram(label, gs_cell, pops_list, times):
     bins = np.arange(transient, simtime+binsize, binsize)
     for i,pop in enumerate(pops_list):
         ax = plt.subplot(gs_loc[i,0])
-        ax.hist(pops[pop]['events']['times'], bins=bins, histtype='step',
+        ax.hist(pops[pop]['events']['times'], bins=bins, histtype='stepfilled',
                 color=pops[pop]['color'])
         ax.set_ylim(bottom=0) # fixing only the bottom
         ax.set_xlim(times[0], times[1])
         ax.yaxis.set_major_locator(MaxNLocator(nbins=3, prune='upper'))
 
         if i==0:
-            ax.set_title('spike count')
+            ax.set_title('spike count ' + r'($\Delta t={}$ ms)'.format(binsize))
             ax.text(-0.05, 1.05, label, ha='left', va='bottom', fontsize=16,
                     fontweight='demibold', transform=ax.transAxes)
         if i==len(pops_list)/2:
@@ -1149,7 +1158,7 @@ def _plot_time_histogram(label, gs_cell, pops_list, times):
     return
 
 
-def _plot_unit_histogram(label, gs_cell, pops_list):
+def _plot_unit_histogram(label, gs_cell, pops_list, sharey):
     tot_neurons = 0
     ratios = []
     for pop in pops_list:
@@ -1160,42 +1169,29 @@ def _plot_unit_histogram(label, gs_cell, pops_list):
             frac = 0.1
         ratios.append(frac)
 
-    binsize = 100. # neurons
+    binsize = order / extent_length / 2. # neurons
 
-    # maximum estimated spike count, used for setting xlim for all populations
-    max_estim_cnt = 0
+    bins = np.arange(min([min(pops[pop]['nodes']) for pop in pops_list]),
+                     max([max(pops[pop]['nodes']) for pop in pops_list])+binsize,
+                     binsize)
+
+    ax = plt.subplot(gs_cell)
     for i,pop in enumerate(pops_list):
-        estim_cnt = pops[pop]['rate'] * (simtime-transient)*1e-3 * binsize
-        if estim_cnt >= max_estim_cnt:
-            max_estim_cnt = estim_cnt
-
-    gs_loc = gridspec.GridSpecFromSubplotSpec(3, 1, gs_cell,
-                                              height_ratios=ratios,
-                                              hspace=0.3)
-    for i,pop in enumerate(pops_list):
-        ax = plt.subplot(gs_loc[i, 0])
-
-        bins = np.arange(np.min(pops[pop]['nodes']),
-                         np.max(pops[pop]['nodes'])+binsize, binsize)
         ax.hist(pops[pop]['events']['senders'],
-                bins=bins, histtype='step',
+                bins=bins, histtype='stepfilled',
                 color=pops[pop]['color'],
                 orientation='horizontal', stacked=False, alpha=1)
 
-        ax.xaxis.set_major_locator(MaxNLocator(nbins=2))
-        ax.set_xlim(0, 1.3*max_estim_cnt)
-        ax.set_xlabel('')
-        ax.set_ylim(np.min(pops[pop]['nodes']), np.max(pops[pop]['nodes']))
-        ax.set_yticks([])
-        ax.set_yticklabels([])
+    ax.xaxis.set_major_locator(MaxNLocator(nbins=3))
+    ax.axis(ax.axis('tight'))
+    ax.set_xlabel('')
+    ax.set_ylim(sharey.get_ylim())
+    ax.set_yticklabels([])
 
-        if i==0:
-            ax.text(-0.18, 1.7, label, ha='left', fontsize=16, va='bottom',
-                    fontweight='demibold', transform=ax.transAxes)
-            ax.set_title('spike count')
-        if i!=2:
-            #ax.set_xticks([0, ax.axis()[1]])
-            ax.set_xticklabels([])
+    ax.text(-0.18, 1.05, label, ha='left', fontsize=16, va='bottom',
+            fontweight='demibold', transform=ax.transAxes)
+    ax.set_title('spike count\n' + r'($\Delta={}$ units)'.format(int(binsize)))
+    
     return
 
 
@@ -1210,33 +1206,28 @@ def _plot_raster_unsorted(label, gs_cell, pops_list, times, dilute):
             frac = 0.1
         ratios.append(frac)
 
-    gs_loc = gridspec.GridSpecFromSubplotSpec(3, 1, gs_cell,
-                                              height_ratios=ratios,
-                                              hspace=0.3)
+    ax = plt.subplot(gs_cell)
     for i,pop in enumerate(pops_list):
-        ax = plt.subplot(gs_loc[i,0])
         _plot_spikes(ax, dilute, nodes=pops[pop]['nodes'],
                      events=pops[pop]['events'],
                      layerdict=pops[pop]['layerdict'],
                      color=pops[pop]['color'],
-                     marker='.', poplabel=pop,
+                     marker=',', poplabel=pop,
                      position_sorted=False)
-        ax.set_xlim(times[0], times[1])
-        ax.set_xticklabels([])
-        ax.set_xlabel('')
+    ax.axis(ax.axis('tight'))
+    ax.set_xlim(times[0], times[1])
+    ax.set_xticklabels([])
+    ax.set_xlabel('')
 
-        min_node = np.min(pops[pop]['nodes'])
-        max_node = np.max(pops[pop]['nodes'])
-        ax.set_ylim([min_node, max_node])
-        ax.set_yticks([min_node, max_node])
+    min_node = np.min(pops[pop]['nodes'])
+    max_node = np.max(pops[pop]['nodes'])
 
-        if i==0:
-            ax.set_title('unsorted spike raster')
-            ax.text(-0.05, 1.7, label, fontsize=16, ha='left',
-                    va='bottom', fontweight='demibold', transform=ax.transAxes)
-        if i==1:
-            ax.set_ylabel('neuron ID')
-    return
+    ax.set_title('unsorted spike raster')
+    ax.text(-0.05, 1.05, label, fontsize=16, ha='left',
+            va='bottom', fontweight='demibold', transform=ax.transAxes)
+    ax.set_ylabel('neuron ID')
+        
+    return ax
 
 
 def _plot_raster_sorted(label, gs_cell, pops_list, times, dilute):
@@ -1246,10 +1237,10 @@ def _plot_raster_sorted(label, gs_cell, pops_list, times, dilute):
                      events=pops[pop]['events'],
                      layerdict=pops[pop]['layerdict'],
                      color=pops[pop]['color'],
-                     marker='.', poplabel=pop,
+                     marker=',', poplabel=pop,
                      position_sorted=True)
 
-    ax.set_title('sorted_spike_raster')
+    ax.set_title('sorted spike raster')
     ax.set_ylabel('x position (mm)')
     ax.set_xlim(times[0], times[1])
     ax.set_xticklabels([])
