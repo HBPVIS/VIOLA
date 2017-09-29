@@ -66,7 +66,7 @@ import mpl_toolkits.mplot3d.art3d as art3d
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.patches import Patch
-from matplotlib.colors import LinearSegmentedColormap
+#from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -76,6 +76,11 @@ plt.rcParams.update({
 })
 
 random.seed(123456)
+
+# base color definitions
+hex_col_ex = '#595289'   # blue with pastel character
+hex_col_in = '#af143c'   # red with pastel character
+hex_col_stim = '#696969' # DimGray
 
 '''
 Assigning the current time to a variable in order to determine the
@@ -279,6 +284,23 @@ conn_dict_stim = {
     'kernel' : 1.,
     'number_of_connections' : num_stim_conn,
     }
+
+
+def cmap_white_to_color(hexcolor, num, whitemin=True):
+    '''
+    Create linear colormap.
+    '''
+    rgb = mpc.hex2color(hexcolor)
+
+    rs = np.linspace(1, rgb[0], num)
+    gs = np.linspace(1, rgb[1], num)
+    bs = np.linspace(1, rgb[2], num)
+
+    rgbs = zip(rs, gs, bs)
+    if not whitemin:
+        rgbs = rgbs[::-1] # switch order of colors
+    cmap = mpc.ListedColormap(tuple(rgbs))
+    return cmap
 
 
 if __name__ == '__main__':
@@ -622,14 +644,14 @@ if __name__ == '__main__':
     pops['STIM']['events'] = nest.GetStatus(stim_spikes, 'events')[0]
     
     # population colors
-    pops['EX']['color'] =  mpc.hex2color('#0000cd')       # MediumBlue
-    pops['IN']['color'] =  mpc.hex2color('#b22222')       # firebrick
-    pops['STIM']['color'] =  mpc.hex2color('#696969')     # DimGray
+    pops['EX']['color'] =  mpc.hex2color(hex_col_ex)
+    pops['IN']['color'] =  mpc.hex2color(hex_col_in)
+    pops['STIM']['color'] =  mpc.hex2color(hex_col_stim)
     
     # population colors (just darker than population colors
-    pops['EX']['conn_color'] = mpc.hex2color('#4169e1')   # RoyalBlue
-    pops['IN']['conn_color'] = mpc.hex2color('#ff3030')   # firebrick1
-    pops['STIM']['conn_color'] = mpc.hex2color('#4169e1') # RoyalBlue
+    pops['EX']['conn_color'] = tuple(np.array(pops['EX']['color']) * 0.9) # darken
+    pops['IN']['conn_color'] = tuple(np.array(pops['IN']['color']) * 0.9)
+    pops['STIM']['conn_color'] = tuple(np.array(pops['EX']['color']) * 0.9)
     
     # targets of the neuron type
     pops['EX']['tgts'] = ['EX', 'IN']
@@ -762,7 +784,8 @@ def figure_network_sketch():
                         C[np.sqrt(X**2 + Y**2) <= cDict['mask']['circular']['radius']] = weights
                         # cmap = 'gray_r'
                         colors = [(1, 1, 1), (0, 0, 1)]
-                        cmap =  LinearSegmentedColormap.from_list('reds', colors, N=64)
+                        cmap = cmap_white_to_color(hex_col_ex, 64)
+                        #cmap =  LinearSegmentedColormap.from_list('reds', colors, N=64)
                         vmin = 0
                         vmax = weights
                     except KeyError as ae:
@@ -776,12 +799,14 @@ def figure_network_sketch():
                             C[mask] = weights*np.exp(-(X[mask]**2 + Y[mask]**2) / (2*sigma**2)) # / (2*np.pi*sigma**2)
                             if weights > 0:
                                 colors = [(1, 1, 1), (0, 0, 1)]
-                                cmap =  LinearSegmentedColormap.from_list('blues', colors, N=64)
+                                cmap = cmap_white_to_color(hex_col_ex, 64)
+                                #cmap =  LinearSegmentedColormap.from_list('blues', colors, N=64)
                                 vmin = 0
                                 vmax = weights
                             else:
                                 colors = [(1, 0, 0), (1, 1, 1)]
-                                cmap =  LinearSegmentedColormap.from_list('reds', colors, N=64)
+                                cmap = cmap_white_to_color(hex_col_in, 64)
+                                #cmap =  LinearSegmentedColormap.from_list('reds', colors, N=64)
                                 vmin = weights
                                 vmax = 0
                         else:
@@ -789,12 +814,14 @@ def figure_network_sketch():
                             C = weights*np.exp(-(X**2 + Y**2) / (2*sigma**2)) # / (2*np.pi*sigma**2)
                             if weights > 0:
                                 colors = [(1, 1, 1), (0, 0, 1)]
-                                cmap =  LinearSegmentedColormap.from_list('blues', colors, N=64)
+                                cmap = cmap_white_to_color(hex_col_ex, 64)
+                                #cmap =  LinearSegmentedColormap.from_list('blues', colors, N=64)
                                 vmin = 0
                                 vmax = weights
                             else:
                                 colors = [(1, 0, 0), (1, 1, 1)]
-                                cmap =  LinearSegmentedColormap.from_list('reds', colors, N=64)
+                                cmap = cmap_white_to_color(hex_col_in, 64, whitemin=False)
+                                #cmap =  LinearSegmentedColormap.from_list('reds', colors, N=64)
                                 vmin = weights
                                 vmax = 0
                     except KeyError as ae:
@@ -1117,7 +1144,8 @@ def _plot_space_histogram(label, gs_cell, pops_list):
     for i,pop in enumerate(pops_list):
         ax = plt.subplot(gs_loc[0,i])
         ax.hist(data[pop], bins=bins, histtype='stepfilled',
-                color=pops[pop]['color'], orientation='horizontal')
+                color=pops[pop]['color'], edgecolor='none',
+                orientation='horizontal')
         ax.set_ylim(bins[0], bins[-1])
         ax.set_yticklabels([])
         ax.xaxis.set_major_locator(MaxNLocator(nbins=2, prune='upper'))
@@ -1140,7 +1168,7 @@ def _plot_time_histogram(label, gs_cell, pops_list, times):
     for i,pop in enumerate(pops_list):
         ax = plt.subplot(gs_loc[i,0])
         ax.hist(pops[pop]['events']['times'], bins=bins, histtype='stepfilled',
-                color=pops[pop]['color'])
+                color=pops[pop]['color'], edgecolor='none')
         ax.set_ylim(bottom=0) # fixing only the bottom
         ax.set_xlim(times[0], times[1])
         ax.yaxis.set_major_locator(MaxNLocator(nbins=3, prune='upper'))
@@ -1179,7 +1207,7 @@ def _plot_unit_histogram(label, gs_cell, pops_list, sharey):
     for i,pop in enumerate(pops_list):
         ax.hist(pops[pop]['events']['senders'],
                 bins=bins, histtype='stepfilled',
-                color=pops[pop]['color'],
+                color=pops[pop]['color'], edgecolor='none',
                 orientation='horizontal', stacked=False, alpha=1)
 
     ax.xaxis.set_major_locator(MaxNLocator(nbins=3))
