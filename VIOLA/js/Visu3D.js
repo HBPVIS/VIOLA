@@ -307,8 +307,8 @@ Visu.Renderer3D = function(panel, data) {
   var ysemibox = this.boxSize * this.ySize / 2;
   var xsumpos = -this.xSize * (this.boxSize) - 90;
   var ysumpos = -this.ySize * (this.boxSize) - 90;
-  for (k = 0; k < this.data.nLayers; k++) {
 
+  for (k = 0; k < this.data.nLayers; k++) {
     // 3D Timeline objects
     this.timelines[k] = new THREE.MarchingCubes(this.data.xNeurons,
                                                 this.data.yNeurons,
@@ -322,7 +322,13 @@ Visu.Renderer3D = function(panel, data) {
     this.timelineScene.add(this.timelines[k]);
     //105 ~= 100/0.95 where 0.95 ~= (40-2)/40
     this.timelines[k].scale.set(scale, scale, scale);
-    this.timelines[k].visible = false;
+
+    // show first population upon setup
+    if (k == 0) {
+      this.timelines[k].visible = true;
+    } else {
+      this.timelines[k].visible = false;
+    };
 
     // Layer scene objects
     if (this.data.dataType == "binned") {
