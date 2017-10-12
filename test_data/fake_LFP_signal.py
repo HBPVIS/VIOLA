@@ -29,10 +29,11 @@ Usage:
 
 from __future__ import division
 
+import matplotlib
 import os
-if 'localhost' in os.environ['DISPLAY']:
-    import matplotlib
+if 'jr' in os.environ['HOSTNAME'] or 'blaustein' in os.environ['HOSTNAME']:
     matplotlib.use('Agg')
+
 import sys
 import numpy as np
 import scipy.signal as ss
@@ -292,7 +293,7 @@ electrodeParams_xz = dict(
 
 
 # switch for rendering test plots
-test_plots = True
+test_plots = False#True
 
 
     

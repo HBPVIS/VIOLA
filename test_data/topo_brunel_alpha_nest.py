@@ -42,7 +42,9 @@ Importing all necessary modules for simulation, analysis and plotting.
 '''
 
 import matplotlib
-# matplotlib.use('Agg')
+import os
+if 'jr' in os.environ['HOSTNAME'] or 'blaustein' in os.environ['HOSTNAME']:
+    matplotlib.use('Agg')
 
 from scipy.optimize import fsolve
 
@@ -51,7 +53,6 @@ nest.set_verbosity('M_WARNING')
 import nest.topology as tp
 
 import time
-import os
 import sys
 import glob
 import numpy as np
