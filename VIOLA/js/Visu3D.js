@@ -461,16 +461,16 @@ Visu.Renderer3D = function(panel, data) {
                       new THREE.Vector3(1, 0, -0.02),
                       new THREE.Vector3(1, 0, 0.02));
     var linematerial = new THREE.LineBasicMaterial({ color: 0x000000,
-                                                     lineWidth: 4,
-                                                     depthTest: false });
-    this.timelineScaleX = new THREE.Line(geo, linematerial, THREE.LinePieces);
+                                                     linewidth: 1,
+                                                     depthTest: false});
+    this.timelineScaleX = new THREE.LineSegments(geo, linematerial);
     this.timelineScaleX.position.x = 0;
     this.timelineScaleX.position.y = -2.5 * this.ySize;
     this.timelineScaleX.position.z = -100 * (this.zTimeSize - 2) /
       (this.data.xNeurons - 2);
     this.timelineScaleX.scale.set(2.5 * this.xSize, 200, 200);
     this.timelineScene.add(this.timelineScaleX);
-    this.timelineScaleY = new THREE.Line(geo, linematerial, THREE.LinePieces);
+    this.timelineScaleY = new THREE.LineSegments(geo, linematerial);
     this.timelineScaleY.position.x = -2.5 * this.xSize;
     this.timelineScaleY.position.y = 0;
     this.timelineScaleY.position.z = -100 * (this.zTimeSize - 2) /
@@ -485,7 +485,7 @@ Visu.Renderer3D = function(panel, data) {
       , new THREE.Vector3(-0.04, 0, 0.8), new THREE.Vector3(0.04, 0, 0.8)
       , new THREE.Vector3(-0.04, 0, -0.4), new THREE.Vector3(0.04, 0, -0.4)
       , new THREE.Vector3(-0.04, 0, -0.8), new THREE.Vector3(0.04, 0, -0.8));
-    this.timelineScaleT = new THREE.Line(geo, linematerial, THREE.LinePieces);
+    this.timelineScaleT = new THREE.LineSegments(geo, linematerial);
     this.timelineScaleT.position.x = 2.5 * this.xSize;
     this.timelineScaleT.position.y = -2.5 * this.ySize;
     // The reference size for the timeline is 40, so we put 38 = 40 - 2
