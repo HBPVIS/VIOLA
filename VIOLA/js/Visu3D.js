@@ -432,7 +432,6 @@ Visu.Renderer3D = function(panel, data) {
   }
 
   if (this.data.dataType == "binned") {
-
     //Boundaries for 3D Timeline
     this.timelineIndex = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), //new THREE.MeshLambertMaterial({color:0x404040, transparent:true, opacity:0.5, side:THREE.DoubleSide}));
       //this.lfpMaterial);
@@ -446,8 +445,9 @@ Visu.Renderer3D = function(panel, data) {
       .fromGeometry(new THREE.BoxGeometry(1, 1, 1))
       , new THREE.MeshLambertMaterial({ color: 0x808080, transparent: true, opacity: 0.2, depthWrite: false }));
     // The reference size for the timeline is 40, so we put 38 = 40 - 2
-    //this.timelineBoundingBox.scale.set(5 * this.xSize, 5 * this.ySize, 200 * (this.zTimeSize - 2) / 38);
-
+    this.timelineBoundingBox.scale.set(5 * this.xSize,
+                                       5 * this.ySize,
+                                       200 * (this.zTimeSize - 2) / 38);
     this.timelineScene.add(this.timelineBoundingBox);
 
     //Scales for timeline
