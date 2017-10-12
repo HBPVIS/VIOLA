@@ -863,9 +863,9 @@ if __name__ == '__main__':
         popColors = []
         for X in preprocess.X:
             if X == 'EX':
-                popColors.append('#b22222') # firebrick
+                popColors.append('#595289') # blue with pastel character
             elif X == 'IN':
-                popColors.append('#0000cd') # MediumBlue
+                popColors.append('#af143c') # red with pastel character
             elif X == 'STIM':
                 popColors.append('#696969') # DimGray
             else:
