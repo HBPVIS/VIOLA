@@ -189,7 +189,9 @@ function generateTimelineParams() {
     ih += '<li><input id="timelinePopCheckBox' + i +
       '" disabled type="checkbox" ' +
       'onchange="r3D.toggleTimelinePop(this.checked,this.value)" value="' +
-      i + '">' + data.layerNames[i] + '</li>';
+      i + '"';
+    if (i == 0) { ih += ' checked'; }; // show first population upon startup
+    ih += ' >' + data.layerNames[i] + '</li>';
   };
   ih += '</ul>';
   ih +=
