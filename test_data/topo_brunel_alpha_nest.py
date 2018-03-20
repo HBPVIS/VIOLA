@@ -43,8 +43,9 @@ Importing all necessary modules for simulation, analysis and plotting.
 
 import matplotlib
 import os
-if 'jr' in os.environ['HOSTNAME'] or 'blaustein' in os.environ['HOSTNAME']:
-    matplotlib.use('Agg')
+if 'HOSTNAME' in os.environ:
+    if 'jr' in os.environ['HOSTNAME'] or 'blaustein' in os.environ['HOSTNAME']:
+        matplotlib.use('Agg')
 
 from scipy.optimize import fsolve
 
@@ -970,10 +971,11 @@ def plot_connections(ax, pop, pops_list, red_conn_dens, dots):
                          [z0, z1], c=pops[pop]['conn_color'], linewidth=1,
                          alpha=0.1)
                 # highlight target
-                ax.plot(tgtloc[0], tgtloc[1], zs=[z1], marker='o',
-                         markeredgecolor='none',
-                         markersize=2, color=pops[pop]['conn_color'],
-                         alpha=1.)
+                ax.plot(xs=[tgtloc[0]], ys=[tgtloc[1]], zs=[z1],
+                        marker='o',
+                        markeredgecolor='none',
+                        markersize=2, color=pops[pop]['conn_color'],
+                        alpha=1.)
             dots.append([srcloc, z0, 'white', 'black', 3])
             if pop == 'IN' and tgt == 'EX': # final
                 dots.append([tgtsloc_show, z1, pops[pop]['conn_color'],
@@ -999,7 +1001,7 @@ def plot_connections(ax, pop, pops_list, red_conn_dens, dots):
                 ax.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
                          [z0, z1], c=pops[src]['conn_color'], linewidth=1,
                          alpha=0.1)
-                ax.plot(tgtloc[0], tgtloc[1], zs=[z1], marker='o',
+                ax.plot(xs=[tgtloc[0]], ys=[tgtloc[1]], zs=[z1], marker='o',
                          markeredgecolor='none',
                          markersize=2, color=pops[src]['conn_color'],
                          alpha=1.)
