@@ -512,7 +512,7 @@ class ViolaPreprocessing(object):
         '''
         #need one extra bin
         dt = np.diff(time_bins)[0]
-        time_bins_h = np.r_[time_bins, [time_bins[-1] + dt]] - self.dt/2.
+        time_bins_h = np.r_[time_bins, [time_bins[-1] + dt]]
 
         #spike train histogram, use scipy.sparse.lil_matrix
         #(row-based linked list sparse matrix).
@@ -529,7 +529,6 @@ class ViolaPreprocessing(object):
             inds = (gdf[:, 1] >= time_bins_h[0]) & \
                    (gdf[:, 1] <= time_bins_h[-1])
             pos_t = np.digitize(gdf[inds, 1].astype(np.float), time_bins_h[1:])
-            #raise Exception
             #create COO matrix
             sptrains = sp.coo_matrix((np.ones(inds.sum(), dtype=dtype),
                                       (gdf[inds, 0]-self.GIDs_corrected[X][0],
@@ -899,4 +898,4 @@ if __name__ == '__main__':
     COMM.Barrier()
     if RANK == 0:
         toc = time()-tic
-        print('analysed in {0} seconds'.format(toc))
+        print('preprocessed data in {0} seconds'.format(toc))

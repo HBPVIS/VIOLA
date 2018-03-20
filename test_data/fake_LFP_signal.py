@@ -31,8 +31,9 @@ from __future__ import division
 
 import matplotlib
 import os
-if 'jr' in os.environ['HOSTNAME'] or 'blaustein' in os.environ['HOSTNAME']:
-    matplotlib.use('Agg')
+if 'HOSTNAME' in list(os.environ.keys()):
+    if 'jr' in os.environ['HOSTNAME'] or 'blaustein' in os.environ['HOSTNAME']:
+        matplotlib.use('Agg')
 
 import sys
 import numpy as np
@@ -293,7 +294,7 @@ electrodeParams_xz = dict(
 
 
 # switch for rendering test plots
-test_plots = False#True
+test_plots = True
 
 
     
@@ -441,7 +442,7 @@ for i, X in enumerate(preprocess.X):
 
 # downsample LFP signals to a time resolution of 1 ms. 
 for key, value in LFP_h.items():
-    LFP_h[key] = decimate(value, q=int(1/network.dt))
+    LFP_h[key] = decimate(value, q=int(1./network.dt))
 
 # write the cell-type specific output files to hdf5.
 # Compute the compound signal as well
