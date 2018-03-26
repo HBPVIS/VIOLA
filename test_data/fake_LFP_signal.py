@@ -294,10 +294,7 @@ electrodeParams_xz = dict(
 
 
 # switch for rendering test plots
-test_plots = True
-
-
-    
+test_plots = False
 
 
 # compute extracellular potentials across space for excitatory and inhibitory connections to the ball and stick,
@@ -413,6 +410,15 @@ for i, X in enumerate(preprocess.X):
                                                            sptrains,
                                                            dtype=np.uint16).toarray()
 
+    # To not introduce a temporal shift between the downsampled LFP and
+    # temporally binned spike trains with bin width \Delta t = 1 ms on intervals
+    # [k*\Delta t, (k+1)*\Delta t), filter each kernel with a [0, \Delta t)
+    # assymetric boxcar filter
+    b = np.ones(int(1./network.dt))*network.dt
+    a = 1.
+    binned_sptrains = ss.lfilter(b, a, binned_sptrains)
+    
+
     # for j, Y in enumerate(preprocess.X[:-1]):
     # Set up container for LFP signal of each postsynaptic population
     # due to presynaptic activity
@@ -439,6 +445,7 @@ for i, X in enumerate(preprocess.X):
             if inds.sum() > 0:
                 # Convolve, add contribution to compute LFP signal
                 LFP_h[X][inds, ] += np.convolve(binned_sptrains[k, ], H[X][l, ], 'same')
+
 
 # downsample LFP signals to a time resolution of 1 ms. 
 for key, value in LFP_h.items():
