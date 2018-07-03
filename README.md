@@ -67,6 +67,9 @@ applies a spatial binning and changes the time step, output files are stored in
 - h5py
 - mpi4py
 - NEST 2.10.x
+- neuron >7.4 (from https://neuron.yale.edu)
+- LFPy >=2.0
+- quantities >= 0.12
 
 ## VIOLA-compatible browsers
 
