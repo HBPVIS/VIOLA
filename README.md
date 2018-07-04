@@ -40,8 +40,10 @@ raw                    | preprocessed
 ---------------------- | -----------------
 spikes-0.gdf           | binned_sprates_rs_EX.dat
 spikes-1.gdf           | binned_sprates_rs_IN.dat
+spikes-2.gdf           | binned_sprates_rs_STIM.dat
 neuron_positions-0.dat | LFPdata.lfp
 neuron_positions-1.dat |
+neuron_positions-2.dat |
 
 Alternatively, you can generate test data yourself as described in
 [Generating test data](#generating-test-data-optional).
