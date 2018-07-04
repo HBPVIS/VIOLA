@@ -55,7 +55,7 @@ Note that this version of the tool may differ from the current master branch of
 this repository.  
 To get the latest version, you can clone the repository (e.g.,
 `git clone https://github.com/HBPVIS/VIOLA.git`),
-navigate to the directory `VIOLA`, and open the contained file `index.html` in
+navigate to the directory **VIOLA**, and open the contained file index.html in
 the browser.
 
 Upon startup, VIOLA opens the **Setup Page** to configure the visualization for
@@ -122,7 +122,7 @@ files need to be uploaded to VIOLA for visualization.
 ### Software dependencies
 * [NEST](http://nest-simulator.org) v2.10.0
 * [NEURON](https://neuron.yale.edu) v7.4
-* Python v2.7.11
+* [Python](http://www.python.org) v2.7.11
   * numpy v1.10.14
   * matplotlib v2.0.2
   * scipy v0.17.0
