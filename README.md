@@ -1,81 +1,136 @@
 # VIOLA
 
-## Tool description
+VIOLA (VIsualization Of Layer Activity) is an interactive, web-based tool
+to visualize activity data in multiple 2D layers such as
+the simulation output of neuronal networks with 2D geometry.
 
-**VIOLA (VIsualizer Of Layer Activity)**
-is a tool to visualize activity in multiple 2D layers in an interactive and
-efficient way. It gives an insight into spatially resolved time series
-such as simulation results of neural networks with 2D geometry.
+A usage example demonstrates the visualization of spike data resulting from a
+[NEST](http://nest-simulator.org) simulation of a spatially structured
+point-neuron network with excitatory and inhibitory neuron populations and an
+external stimulus.
 
-The usage example shows how VIOLA can be used to visualize spike data from a
-NEST simulation (http://nest-simulator.org/) of an excitatory and an
-inhibitory neuron population with distance-dependent connectivity.
+## Getting started
 
-Detailed documentation will be made available in the Wiki. Short usage example
-are shown below.
+### 1. Get test data
 
-## Usage example
-The following description includes generation and processing of output data from
-a simulation of a point-neuron network with 2D geometry implemented using NEST
-through Python (http://www.python.org). The scripts can be found in the folder
-'test_data'. These steps can be skipped, as the simulation output can already
-be found in 'test_data/out_raw' and 'test_data/out_proc'.
+Spatially resolved time series data to be visualized with VIOLA can have two
+different formats:
+* **raw:** spike times associated with spatial locations of spiking neurons
+* **preprocessed:** spatially and temporally binned spike data including LFP
+signals
 
-### 1. Generate spike data with NEST
+We have prepared one data set of each format that can be downloaded here:
+* [RawData.zip](https://hbpvis.github.io/VIOLA/downloads/RawData.zip)
+* [PreprocessedData.zip](https://hbpvis.github.io/VIOLA/downloads/PreprocessedData.zip)
+(recommended to start with for testing out VIOLA)
+
+Extract the archived files, e.g., using `unzip PreprocessedData.zip`.  
+Each data set contains text files with the data to be visualized and a
+corresponding configuration file for VIOLA:
+
+#### Configuration files
+
+raw                    | preprocessed
+---------------------- | -----------------
+config_raw.json        | config_proc.json
+
+#### Data files
+
+raw                    | preprocessed
+---------------------- | -----------------
+spikes-0.gdf           | binned_sprates_rs_EX.dat
+spikes-1.gdf           | binned_sprates_rs_IN.dat
+neuron_positions-0.dat | LFPdata.lfp
+neuron_positions-1.dat |
+
+Alternatively, you can generate test data yourself as described in
+[Generating test data](#generating-test-data-optional).
+
+### 2. Start VIOLA
+
+VIOLA runs in a web browser and the preferred browser is Chrome.
+
+Start VIOLA from its [GitHub Page](http://hbpvis.github.io/VIOLA).  
+Note that this version of the tool may differ from the current master branch of
+this repository.  
+To get the latest version, you can clone the repository (e.g.,
+`git clone https://github.com/HBPVIS/VIOLA.git`),
+navigate to the directory `VIOLA`, and open the contained file `index.html` in
+the browser.
+
+Upon startup, VIOLA opens the **Setup Page** to configure the visualization for
+a specific data set.  
+Just upload the configuration file (config_proc.json for preprocessed data), and
+then click the button `Setup visualization` to get to the **Main Page**.
+
+Using the **Upload Panel** to the left, you can upload all files for the data
+(see the [Tables](#configuration-files) above) to be visualized:  
+either by dragging and dropping the files to the blue box or by opening a file
+manager with the corresponding button.  
+If the background color of the field for a data file changes from red to green,
+the upload has been successful.  
+As soon as all files are uploaded, close the upload panel by clicking the **x**
+at its top right corner.
+
+Press **Play** to start the visualization.
+
+For further documentation, please refer to the
+[VIOLA Wiki](https://github.com/HBPVIS/VIOLA/wiki) containing the
+[User Manual](https://github.com/HBPVIS/VIOLA/wiki/VIOLA-User-Manual)
+and the
+[Developer Manual](https://github.com/HBPVIS/VIOLA/wiki/VIOLA-Developer-Manual).
+
+## Generating test data (optional)
+
+The scripts to simulate a spatially structured network of spiking point-neurons
+are in the directory **test_data** in this repository.  
+Simulations rely on the simulator [NEST](http://nest-simulator.org) and are
+implemented using the [Python](http://www.python.org) interface.  
+Software dependencies for the simulation scripts are summarized together with
+the tested version numbers [below](#software-dependencies).
+
+For generating **raw data**, run
 
     python topo_brunel_alpha_nest.py out_raw
 
-creates a directory 'out_raw' which contains the simulation output and a
-configuration file for VIOLA.
+The created directory **out_raw** contains configuration and data files for raw
+data and the [Tables](#configuration-files) above indicate which files need to
+be uploaded to VIOLA for visualization.
 
-### 2. Visualize raw spike data
-
-- start VIOLA (/VIOLA/index.html) in a browser (Chrome preferred), and load the
-configuration file 'config_raw.json'. Alternatively, adjust the parameters
-manually.
-- upload the following files:
-  - spikes-0.gdf, spikes-1.gdf
-  - neuron_positions-0.dat, neuron_positions-1.dat
-
-### 3. Preprocess spike data
+Having generated raw data, you can generate **preprocessed data** by running
 
     python nest_preprocessing.py out_raw out_proc
 
-or with OpenMPI:
+To speed up the preprocessing step, you can also use OpenMPI und run instead
 
     mpirun -np 2 python nest_preprocessing.py out_raw out_proc
 
-applies a spatial binning and changes the time step, output files are stored in
-'out_proc'.
+Afterwards, generate LFP data. You need to compile the
+[NEURON](https://neuron.yale.edu) model once on your system by
+executing
 
-### 4. Generate LFP like signal from spike data
+    nrnivmodl alphaisyn.mod
+
+and then you can run
 
     python fake_LFP_signal.py out_raw out_proc
 
-### 5. Visualize preprocessed data
-- start VIOLA and load the configuration file 'config_proc.json'
-- upload the following files:
-  - binned_sprates_rs_EX.dat, binned_sprates_rs_IN.dat
-  - LFPdata.lfp
+The created directory **out_proc** contains configuration and data files for
+preprocessed data and the [Tables](#configuration-files) above indicate which
+files need to be uploaded to VIOLA for visualization.
 
-## Simulation script dependencies
-
-- Python 2.7.x
-- numpy
-- matplotlib
-- scipy
-- h5py
-- mpi4py
-- NEST 2.10.x
-- neuron >7.4 (from https://neuron.yale.edu)
-- LFPy >=2.0
-- quantities >= 0.12
-
-## VIOLA-compatible browsers
-
-- Chrome
-- Opera
+### Software dependencies
+* [NEST](http://nest-simulator.org) v2.10.0
+* [NEURON](https://neuron.yale.edu) v7.4
+* Python v2.7.11
+  * numpy v1.10.14
+  * matplotlib v2.0.2
+  * scipy v0.17.0
+  * h5py v2.5.0
+  * mpi4py v2.0.0
+  * LFPy v2.0.0
+  * quantities v0.12
 
 ## Authors
 
-- Corto Carde, Johanna Senk, Espen Hagen, Benjamin Weyers
+* Corto Carde, Johanna Senk, Espen Hagen, Benjamin Weyers
