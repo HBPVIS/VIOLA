@@ -50,7 +50,8 @@ Alternatively, you can generate test data yourself as described in
 
 ### 2. Start VIOLA
 
-VIOLA runs in a web browser and the preferred browser is Chrome.
+VIOLA runs in a web browser and the preferred browser is
+[Chrome](https://www.google.de/chrome).
 
 Start VIOLA from its [GitHub Page](http://hbpvis.github.io/VIOLA).  
 Note that this version of the tool may differ from the current master branch of
