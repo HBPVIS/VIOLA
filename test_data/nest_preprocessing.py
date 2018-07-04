@@ -31,8 +31,6 @@ import glob
 import h5py
 import json
 import os
-import matplotlib.pyplot as plt
-import matplotlib.colors as mpc
 from time import time, sleep
 from mpi4py import MPI
 

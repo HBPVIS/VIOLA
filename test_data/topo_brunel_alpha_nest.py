@@ -41,11 +41,10 @@ Usage:
 Importing all necessary modules for simulation, analysis and plotting.
 '''
 
-import matplotlib
 import os
-if 'HOSTNAME' in list(os.environ.keys()):
-    if 'jr' in os.environ['HOSTNAME'] or 'blaustein' in os.environ['HOSTNAME']:
-        matplotlib.use('Agg')
+import matplotlib
+if not 'DISPLAY' in os.environ.keys():
+    matplotlib.use('Agg')
 
 from scipy.optimize import fsolve
 

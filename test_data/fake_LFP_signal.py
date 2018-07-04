@@ -29,11 +29,10 @@ Usage:
 
 from __future__ import division
 
-import matplotlib
 import os
-if 'HOSTNAME' in list(os.environ.keys()):
-    if 'jr' in os.environ['HOSTNAME'] or 'blaustein' in os.environ['HOSTNAME']:
-        matplotlib.use('Agg')
+import matplotlib
+if not 'DISPLAY' in os.environ.keys():
+    matplotlib.use('Agg')
 
 import sys
 import numpy as np
