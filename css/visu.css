@@ -107,6 +107,7 @@ body{
   background-color:blue;
   height:100px;
   margin-bottom:10px;
+  text-align: center;
 }
 
 #config-panel{
