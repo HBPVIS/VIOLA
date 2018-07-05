@@ -11,7 +11,7 @@ external stimulus.
 
 ## Getting started
 
-### 1. Get test data
+### 1. Getting test data
 
 Spatially resolved time series data to be visualized with VIOLA can have two
 different formats:
@@ -48,7 +48,7 @@ neuron_positions-2.dat |
 Alternatively, you can generate test data yourself as described in
 [Generating test data](#generating-test-data-optional).
 
-### 2. Start VIOLA
+### 2. Starting VIOLA
 
 VIOLA runs in a web browser and the preferred browser is
 [Google Chrome](https://www.google.de/chrome).
