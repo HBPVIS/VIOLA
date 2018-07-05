@@ -33,15 +33,15 @@
       <ul class="list-nostyle">
         <li>Data type
           <select onchange="updateDataType()" id="dataTypeSelect">
-            <option value="binned">Spatially binned data</option>
-            <option value="neuron">Single neurons (raw simulation output)
+            <option value="binned">preprocessed (spatially and temporally binned)</option>
+            <option value="neuron">raw (single spikes)
             </option>
         </select>
         </li>
       </ul>
       <ul id="paramList" class="list-nostyle">
         <li class="spacer"></li>
-        <li class="paramListSubtitle">Neural network simulation</li>
+        <li class="paramListSubtitle">Spike data</li>
         <!-- using default values from current test data-->
         <li>Number of populations
           <input id="popNumber" type="number" value="3">
@@ -97,7 +97,7 @@
             multiple 2D layers such as the simulation output of neuronal networks
             with 2D geometry.</p>
         <p>The preferred browser for running VIOLA is
-            <a href="https://www.google.de/chrome">Chrome.</a></p>
+            <a href="https://www.google.de/chrome">Google Chrome.</a></p>
         <p>The source code of the tool is hosted on
             <a href="https://github.com/HBPVIS/VIOLA.git">GitHub</a>.</p>
         <p>For documentation, please refer to the

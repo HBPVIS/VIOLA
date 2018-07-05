@@ -51,7 +51,7 @@ Alternatively, you can generate test data yourself as described in
 ### 2. Start VIOLA
 
 VIOLA runs in a web browser and the preferred browser is
-[Chrome](https://www.google.de/chrome).
+[Google Chrome](https://www.google.de/chrome).
 
 Start VIOLA from its [GitHub Page](http://hbpvis.github.io/VIOLA).  
 Note that this version of the tool may differ from the current master branch of
@@ -64,12 +64,12 @@ the browser.
 Upon startup, VIOLA opens the **Setup Page** to configure the visualization for
 a specific data set.  
 Just upload the configuration file (config_proc.json for preprocessed data), and
-then click the button `Setup visualization` to get to the **Main Page**.
+then click the button **Setup visualization** to get to the **Main Page**.
 
 Using the **Upload Panel** to the left, you can upload all files for the data
 (see the [Tables](#configuration-files) above) to be visualized:  
 either by dragging and dropping the files to the blue box or by opening a file
-manager with the corresponding button.  
+explorer with the corresponding button.  
 If the background color of the field for a data file changes from red to green,
 the upload has been successful.  
 As soon as all files are uploaded, close the upload panel by clicking the **x**
