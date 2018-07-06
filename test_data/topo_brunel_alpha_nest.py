@@ -599,6 +599,10 @@ if __name__ == '__main__':
     print("Stimulus rate     : %.2f Hz" % rate_stim)
     print("Building time     : %.2f s" % build_time)
     print("Simulation time   : %.2f s" % sim_time)
+
+    nest.sli_run('memory_thisjob') # virtual memory size of NEST process
+    memory = nest.sli_pop()
+    print("Memory            : %.2f kB" % memory)
     
     '''
     A dictionary for population parameters is created to allow for easier access.
@@ -1287,8 +1291,9 @@ if __name__=='__main__':
     create_viola_config_raw()
 
     # these functions are optional
-    figure_network_sketch()
+    if False:
+        figure_network_sketch()
 
-    times = [transient, simtime] # displayed time interval
-    #times = [simtime - 500., simtime]
-    figure_raster(times)
+        times = [transient, simtime] # displayed time interval
+        #times = [simtime - 500., simtime]
+        figure_raster(times)
