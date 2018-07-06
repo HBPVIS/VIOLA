@@ -11,9 +11,9 @@ external stimulus.
 
 ## Getting started
 
-Two steps are necessary to start the visualization:
-first, you need to [get test data](#getting-test-data), and, second, you need
-to [start the tool](#starting-viola) and load the data.
+Two steps are necessary to run the visualization:
+first, you need to [get test data](#1-getting-test-data), and, second, you need
+to [start the tool](#2-starting-viola) and load the data.
 
 ### 1. Getting test data
 
@@ -70,8 +70,8 @@ a specific data set.
 Just upload the configuration file (config_proc.json for preprocessed data), and
 then click the button **Setup visualization** to get to the **Main Page**.
 
-Using the **Upload Panel** to the left, you can upload all files for the data
-(see the [Tables](#configuration-files) above) to be visualized:  
+Using the **Upload Panel** to the left, you can upload all data files (see the
+[Tables](#configuration-files) above) to be visualized:  
 either by dragging and dropping the files to the blue box or by opening a file
 explorer with the corresponding button.  
 If the background color of the field for a data file changes from red to green,
