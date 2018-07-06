@@ -11,6 +11,10 @@ external stimulus.
 
 ## Getting started
 
+Two steps are necessary to start the visualization:
+first, you need to [get test data](#getting-test-data), and, second, you need
+to [start the tool](#starting-viola) and load the data.
+
 ### 1. Getting test data
 
 Spatially resolved time series data to be visualized with VIOLA can have two
@@ -75,7 +79,8 @@ the upload has been successful.
 As soon as all files are uploaded, close the upload panel by clicking the **x**
 at its top right corner.
 
-Press **Play** to start the visualization.
+Press **Play** in the control bar that is located at the bottom to start the
+visualization.
 
 For further documentation, please refer to the
 [VIOLA Wiki](https://github.com/HBPVIS/VIOLA/wiki) containing the
@@ -86,7 +91,9 @@ and the
 ## Generating test data (optional)
 
 The scripts to simulate a spatially structured network of spiking point-neurons
-are in the directory **test_data** in this repository.  
+are in the directory **test_data** in this repository.
+You can clone the repository, e.g., with
+`git clone https://github.com/HBPVIS/VIOLA.git`.  
 Simulations rely on the simulator [NEST](http://nest-simulator.org) and are
 implemented using the [Python](http://www.python.org) interface.  
 Software dependencies for the simulation scripts are summarized together with
