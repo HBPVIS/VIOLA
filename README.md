@@ -133,7 +133,7 @@ files need to be uploaded to VIOLA for visualization.
 * [NEST](http://nest-simulator.org) v2.10.0
 * [NEURON](https://neuron.yale.edu) v7.4
 * [Python](http://www.python.org) v2.7.11
-  * numpy v1.10.14
+  * numpy v1.10.4
   * matplotlib v2.0.2
   * scipy v0.17.0
   * h5py v2.5.0
