@@ -1042,7 +1042,7 @@ def figure_raster(times):
 
 
     fig = plt.figure(figsize=(13., 8.))
-    fig.subplots_adjust(top=0.94, bottom=0.06, left=0.11, right=0.96,
+    fig.subplots_adjust(top=0.94, bottom=0.1, left=0.08, right=0.97,
                         wspace=0.3, hspace=1.)
     gs = gridspec.GridSpec(6,5)
 
@@ -1059,26 +1059,14 @@ def figure_raster(times):
     _plot_unit_histogram('B', gs_cell, pops_list, sharey=ax0)
 
 
-    # C: sorted raster
+    # C: spike count histogram over time
     gs_cell = gs[2:4, :4]
-    pops_list = ['EX', 'IN', 'STIM']
-    _plot_raster_sorted('A', gs_cell, pops_list, times, dilute)
-
-
-    # D: spike count histogram over space
-    gs_cell = gs[2:4, 4]
-    pops_list = ['IN', 'EX', 'STIM'] # bottom to top
-    _plot_space_histogram('D', gs_cell, pops_list)
-
-
-    # E: spike count histogram over time
-    gs_cell = gs[4:6, :4]
     pops_list = ['STIM', 'EX', 'IN'] # top to bottom
-    _plot_time_histogram('E', gs_cell, pops_list, times)
+    _plot_time_histogram('C', gs_cell, pops_list, times)
 
 
     # legend to the bottom right
-    ax = plt.subplot(gs[4:6,4:]) # just for the legend
+    ax = plt.subplot(gs[2:4,4:]) # just for the legend
     plt.axis('off')
     handles = [Patch(color=pops['STIM']['color']),
                Patch(color=pops['EX']['color']),
@@ -1087,6 +1075,21 @@ def figure_raster(times):
               'EX',
               'IN']
     ax.legend(handles, labels, loc='center')
+
+
+    # D: sorted raster
+    gs_cell = gs[4:6, :4]
+    pops_list = ['EX', 'IN', 'STIM']
+    _plot_raster_sorted('D', gs_cell, pops_list, times, dilute)
+
+
+    # E: spike count histogram over space
+    gs_cell = gs[4:6, 4]
+    pops_list = ['IN', 'EX', 'STIM'] # bottom to top
+    _plot_space_histogram('E', gs_cell, pops_list)
+
+
+
 
     fig.savefig(os.path.join(spike_output_path, 'raster.pdf'), dpi=320)
 
@@ -1160,7 +1163,7 @@ def _plot_space_histogram(label, gs_cell, pops_list):
         if i==0:
             ax.text(-0.6, 1.05, label, ha='left', va='bottom', fontsize=16,
                     fontweight='demibold', transform=ax.transAxes)
-        if i==len(pops_list)/2:
+        if i==int(len(pops_list)/2):
             ax.set_title('spike count\n' + r'($\Delta={}$ mm)'.format(binsize))
             ax.set_xlabel('count')
     return
@@ -1183,10 +1186,8 @@ def _plot_time_histogram(label, gs_cell, pops_list, times):
             ax.set_title('spike count ' + r'($\Delta t={}$ ms)'.format(binsize))
             ax.text(-0.05, 1.05, label, ha='left', va='bottom', fontsize=16,
                     fontweight='demibold', transform=ax.transAxes)
-        if i==len(pops_list)/2:
+        if i==int(len(pops_list)/2):
             ax.set_ylabel('count')
-        if i==len(pops_list)-1:
-            ax.set_xlabel('time (ms)')
         else:
             ax.set_xticklabels([])
     return
@@ -1218,7 +1219,7 @@ def _plot_unit_histogram(label, gs_cell, pops_list, sharey):
 
     ax.xaxis.set_major_locator(MaxNLocator(nbins=3))
     ax.axis(ax.axis('tight'))
-    ax.set_xlabel('')
+    ax.set_xlabel('count')
     ax.set_ylim(sharey.get_ylim())
     ax.set_yticklabels([])
 
@@ -1276,9 +1277,9 @@ def _plot_raster_sorted(label, gs_cell, pops_list, times, dilute):
 
     ax.set_title('sorted spike raster')
     ax.set_ylabel('x position (mm)')
+    ax.set_xlabel('time (ms)')
     ax.set_xlim(times[0], times[1])
-    ax.set_xticklabels([])
-    ax.text(-0.05, 1.05, 'C', ha='left', fontsize=16, va='bottom',
+    ax.text(-0.05, 1.05, label, ha='left', fontsize=16, va='bottom',
             fontweight='demibold', transform=ax.transAxes)
     return
 
@@ -1295,5 +1296,4 @@ if __name__=='__main__':
         figure_network_sketch()
 
         times = [transient, simtime] # displayed time interval
-        #times = [simtime - 500., simtime]
         figure_raster(times)
