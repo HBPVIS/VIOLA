@@ -29,12 +29,17 @@ Usage:
 
 from __future__ import division
 
+import sys
+# JURECA: remove global matplotlib from path such that local install can be found
+try:
+    sys.path.remove('/usr/local/software/jureca/Stages/2016a/software/SciPy-Stack/2016a-intel-para-2016a-Python-2.7.11/lib/python2.7/site-packages/matplotlib-1.5.1-py2.7-linux-x86_64.egg')
+except (ValueError, KeyError) as err:
+    pass
+
 import os
 import matplotlib
-if not 'DISPLAY' in os.environ.keys():
-    matplotlib.use('Agg')
-
-import sys
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal as ss
 import nest_preprocessing as npr
@@ -42,7 +47,7 @@ import topo_brunel_alpha_nest as network
 import LFPy
 import neuron
 import quantities as pq
-import matplotlib.pyplot as plt
+
 
 def decimate(x, q=10, n=4, k=0.8, filterfun=ss.cheby1):
     """

@@ -41,26 +41,18 @@ Usage:
 Importing all necessary modules for simulation, analysis and plotting.
 '''
 
-import os
-import matplotlib
-if not 'DISPLAY' in os.environ.keys():
-    matplotlib.use('Agg')
-
-from scipy.optimize import fsolve
-
-import nest
-nest.set_verbosity('M_WARNING')
-import nest.topology as tp
-
-import time
 import sys
+# JURECA: remove global matplotlib from path such that local install can be found
+try:
+    sys.path.remove('/usr/local/software/jureca/Stages/2016a/software/SciPy-Stack/2016a-intel-para-2016a-Python-2.7.11/lib/python2.7/site-packages/matplotlib-1.5.1-py2.7-linux-x86_64.egg')
+except (ValueError, KeyError) as err:
+    pass
+import os
+import time
 import glob
-import numpy as np
-from numpy import exp, random, zeros_like, r_
-from multiprocessing import cpu_count
 
-import json
-
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpc
 import mpl_toolkits.mplot3d.art3d as art3d
@@ -70,6 +62,24 @@ from matplotlib.patches import Patch
 #from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d import Axes3D
+
+import scipy
+from scipy.optimize import fsolve
+
+import numpy as np
+from numpy import exp, random, zeros_like, r_
+from multiprocessing import cpu_count
+
+import json
+
+import nest
+nest.set_verbosity('M_WARNING')
+import nest.topology as tp
+
+print('matplotlib version: ' + matplotlib.__version__)
+print('numpy version: ' + np.__version__)
+print('scipy version: ' + scipy.__version__)
+
 
 plt.rcParams.update({
     'axes.xmargin': 0.0,
@@ -342,7 +352,8 @@ if __name__ == '__main__':
                           "overwrite_files": True,
                           'local_num_threads': cpu_count(),
                           'grng_seed': 234567})
-    
+    print('total_num_virtual_procs: ' + str(nest.GetKernelStatus('total_num_virtual_procs')))
+
     print("Building network")
     
     '''
@@ -378,11 +389,11 @@ if __name__ == '__main__':
     '''
     Distribute initial membrane voltages.
     '''
-    
+
     for neurons in [nodes_ex, nodes_in]:
         for neuron in neurons:
-            nest.SetStatus([neuron], {'V_m': theta * np.random.rand()})
-    
+            nest.SetStatus([neuron], {'V_m': theta * random.rand()})
+
     '''
     Create spike detectors for recording from the excitatory and the
     inhibitory populations and a poisson generator as noise source.
@@ -499,7 +510,7 @@ if __name__ == '__main__':
     Storage of the time point after the buildup of the network in a
     variable.
     '''
-    
+
     endbuild=time.time()
     
     # # ConnPlotter test plot
