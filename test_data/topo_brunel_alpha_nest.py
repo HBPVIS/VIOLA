@@ -664,10 +664,15 @@ if __name__ == '__main__':
     pops['IN']['color'] =  mpc.hex2color(hex_col_in)
     pops['STIM']['color'] =  mpc.hex2color(hex_col_stim)
     
-    # population colors (just darker than population colors
-    pops['EX']['conn_color'] = tuple(np.array(pops['EX']['color']) * 0.9) # darken
-    pops['IN']['conn_color'] = tuple(np.array(pops['IN']['color']) * 0.9)
-    pops['STIM']['conn_color'] = tuple(np.array(pops['EX']['color']) * 0.9)
+    # dark connection colors (just darker than population colors)
+    pops['EX']['conn_color_dark'] = tuple(np.array(pops['EX']['color']) * 0.9) # darken
+    pops['IN']['conn_color_dark'] = tuple(np.array(pops['IN']['color']) * 0.9)
+    pops['STIM']['conn_color_dark'] = tuple(np.array(pops['EX']['color']) * 0.9)
+
+    # light connection colors (just lighter than population colors, note: <1)
+    pops['EX']['conn_color_light'] = tuple(np.array(pops['EX']['color']) * 1.4) # lighten
+    pops['IN']['conn_color_light'] = tuple(np.array(pops['IN']['color']) * 1.4)
+    pops['STIM']['conn_color_light'] = tuple(np.array(pops['EX']['color']) * 1.4)
     
     # targets of the neuron type
     pops['EX']['tgts'] = ['EX', 'IN']
@@ -762,8 +767,10 @@ def figure_network_sketch():
     '''
 
     print('Plotting network sketch')
-    red_conn_dens = 1 # reduce connection density
+    red_conn_dens = 1 # show connections in steps of
+    dilute_neurons = 1 # show neurons in steps of
     print('  Diluting connection density: {}'.format(red_conn_dens))
+    print('  Diluting number of neurons shown: {}'.format(dilute_neurons))
 
     # set up figure
     fig = plt.figure(figsize=(13,5))
@@ -789,8 +796,8 @@ def figure_network_sketch():
         for j, post in enumerate(pList):
             ax = fig.add_subplot(gs0[i, j], aspect='equal')
             extent = lDict['extent']
-            x = np.linspace(-extent[0]/2, extent[0]/2, 101)
-            y = np.linspace(-extent[1]/2, extent[1]/2, 101)
+            x = np.linspace(-extent[0]/2, extent[0]/2, 51) # changed from 101
+            y = np.linspace(-extent[1]/2, extent[1]/2, 51)
             X,Y = np.meshgrid(x, y)
             C = np.zeros(X.shape)
             if conn[j]:
@@ -882,7 +889,6 @@ def figure_network_sketch():
 
 
     # network sketch
-    # ax1 = plt.subplot(gs1[0, 3:], projection='3d')
     ax1.text2D(0.4, 0.95, 'B',
         horizontalalignment='center',
         verticalalignment='center',
@@ -891,15 +897,24 @@ def figure_network_sketch():
 
     # build figure from bottom to top
     pops_list = ['IN', 'EX', 'STIM'] # bottom, center, top
-    dots = []
-    for pop in pops_list: # from bottom to top
-        plot_layer(ax1, pop, pops_list)
-        dots = plot_connections(ax1, pop, pops_list, red_conn_dens, dots)
-    plot_dots(ax1, dots)
+    dots_IN_IN, srcdot_IN_IN = plot_connections(ax1, 'IN', 'IN', pops_list, red_conn_dens)
+    plot_layer(ax1, 'IN', pops_list, dilute_neurons)
+    plot_dots(ax1, dots_IN_IN)
+    plot_dots(ax1, srcdot_IN_IN)
+    dots_IN_EX, srcdot_IN_EX = plot_connections(ax1, 'IN', 'EX', pops_list, red_conn_dens)
+    _, srcdot_EX_IN = plot_connections(ax1, 'EX', 'IN', pops_list, red_conn_dens)
+    dots_EX_EX, srcdot_EX_EX = plot_connections(ax1, 'EX', 'EX', pops_list, red_conn_dens)
+    plot_layer(ax1, 'EX', pops_list, dilute_neurons)
+    plot_dots(ax1, dots_IN_EX)
+    plot_dots(ax1, dots_EX_EX)
+    plot_dots(ax1, srcdot_IN_EX)
+    plot_dots(ax1, srcdot_EX_EX)
+    plot_dots(ax1, srcdot_EX_IN)
+    _, srcdot_STIM_EX = plot_connections(ax1, 'STIM', 'EX', pops_list, red_conn_dens)
+    plot_layer(ax1, 'STIM', pops_list, dilute_neurons)
+    plot_dots(ax1, srcdot_STIM_EX)
 
     # make plot look nice
-    # ax1.set_aspect('equal')
-    # ax1.set_aspect('tight')
     ax1.set_xlabel('$x$ (mm)', labelpad=-1)
     ax1.set_ylabel('$y$ (mm)', labelpad=-1)
     ax1.set_xticks([-2., -1, 0, 1., 2.])
@@ -925,8 +940,8 @@ def figure_network_sketch():
          Patch(color=pops['IN']['color']),
          plt.Line2D((0,1),(0,0), color='white', marker='o',
                     markeredgecolor='black', linestyle=''),
-         plt.Line2D((0,1),(0,0), color=pops['EX']['conn_color']),
-         plt.Line2D((0,1),(0,0), color=pops['IN']['conn_color'])]
+         plt.Line2D((0,1),(0,0), color=pops['EX']['conn_color_light']),
+         plt.Line2D((0,1),(0,0), color=pops['IN']['conn_color_light'])]
     labels = \
         ['STIM',
          'EX',
@@ -941,101 +956,79 @@ def figure_network_sketch():
 
     fig.savefig(os.path.join(spike_output_path, 'network_sketch.pdf'), dpi=320,
                 bbox_inches=0)
+    fig.savefig(os.path.join(spike_output_path, 'network_sketch.eps'), dpi=320,
+                bbox_inches=0)
 
 '''
 Definition of helper functions for the network sketch.
 '''
 
-def plot_layer(ax, pop, pops_list):
+def plot_layer(ax, pop, pops_list, dilute_neurons):
     # plot neurons at their original location
     pos = np.array(pops[pop]['pos']).transpose()
     z0 = pops_list.index(pop)
-    ax.plot(pos[0], pos[1], zs=z0, 
+
+    xshow = pos[0][0:len(pos[0]):dilute_neurons]
+    yshow = pos[1][0:len(pos[1]):dilute_neurons]
+
+    ax.plot(xshow, yshow, zs=z0,
             marker=',',
-            # marker='o', markeredgecolor='none',
             linestyle='None',
-            # markersize=1,
             color=pops[pop]['color'],
             alpha=1.)
     ax.text(-2, -2.8, z0+0.3, pop)
     return
 
-def plot_connections(ax, pop, pops_list, red_conn_dens, dots):
-    # note that xyloc of connection is set here manually
 
-    # connections from pop to tgts
-    for tgt in pops[pop]['tgts']:
-        z0 = pops_list.index(pop)
-        z1 = z0 + (pops_list.index(tgt) - z0)
-        if pop == tgt or z0 <= z1:
-            if pop == tgt:
-                xyloc = [0.8, 0.8]
-            else:
-                xyloc = [-0.8, -0.8]
-            srcid = tp.FindNearestElement(pops[pop]['layer'], xyloc, False)
-            srcloc = tp.GetPosition(srcid)[0]
-            tgtsloc = np.array(tp.GetTargetPositions(srcid,
-                                                     pops[tgt]['layer'])[0])
-            # targets do not get picked in the same order;
-            # they are sorted here for reproducibility
-            tgtsloc = tgtsloc[np.argsort(tgtsloc[:,0])]
-            tgtsloc_show = tgtsloc[0:len(tgtsloc):red_conn_dens]
-            for tgtloc in tgtsloc_show:
-                ax.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
-                         [z0, z1], c=pops[pop]['conn_color'], linewidth=1,
-                         alpha=0.1)
-                # highlight target
-                ax.plot(xs=[tgtloc[0]], ys=[tgtloc[1]], zs=[z1],
-                        marker='o',
-                        markeredgecolor='none',
-                        markersize=2, color=pops[pop]['conn_color'],
-                        alpha=1.)
-            dots.append([srcloc, z0, 'white', 'black', 3])
-            if pop == 'IN' and tgt == 'EX': # final
-                dots.append([tgtsloc_show, z1, pops[pop]['conn_color'],
-                             'none', 2])
+def plot_connections(ax, src, tgt, pops_list, red_conn_dens):
 
-    # draw connections from src to pop
-    for src in pops_list:
-        z0 = pops_list.index(src)
-        z1 = z0 + (pops_list.index(pop) - z0)
-        if src != pop and (pop in pops[src]['tgts']) and z0 > z1:
-            if src == 'STIM':
-                xyloc = [0.,0.]
-            else:
-                xyloc = [0.8, -0.8]
-            srcid = tp.FindNearestElement(pops[src]['layer'], xyloc, False)
-            srcloc = tp.GetPosition(srcid)[0]
-            tgtsloc = np.array(tp.GetTargetPositions(srcid,
-                                                     pops[pop]['layer'])[0])
-            tgtsloc = tgtsloc[np.argsort(tgtsloc[:,0])]
-            tgtsloc_show = tgtsloc[0:len(tgtsloc):red_conn_dens]
-            for tgtloc in tgtsloc_show:
-                pass
-                ax.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
-                         [z0, z1], c=pops[src]['conn_color'], linewidth=1,
-                         alpha=0.1)
-                ax.plot(xs=[tgtloc[0]], ys=[tgtloc[1]], zs=[z1], marker='o',
-                         markeredgecolor='none',
-                         markersize=2, color=pops[src]['conn_color'],
-                         alpha=1.)
-            dots.append([srcloc, z0, 'white', 'black', 3])
-            if src == 'STIM': # final
-                dots.append([tgtsloc_show, z1, pops[src]['conn_color'],
-                             'none', 2])
-    return dots
+    # z-positions
+    z0 = pops_list.index(src)
+    z1 = z0 + (pops_list.index(tgt) - z0)
+
+    # x,y-positions
+    if src == 'STIM':
+        xyloc = [0., 0.]
+    elif src == tgt:
+        xyloc = [0.8, 0.8]
+    elif src == 'EX':
+        xyloc = [0.8, -0.8]
+    elif src == 'IN':
+        xyloc = [-0.8, -0.8]
+
+    srcid = tp.FindNearestElement(pops[src]['layer'], xyloc, False)
+    srcloc = tp.GetPosition(srcid)[0]
+    tgtsloc = np.array(tp.GetTargetPositions(srcid,
+                                             pops[tgt]['layer'])[0])
+    # targets do not get picked in the same order;
+    # they are sorted here for reproducibility
+    tgtsloc = tgtsloc[np.argsort(tgtsloc[:,0])]
+    tgtsloc_show = tgtsloc[0:len(tgtsloc):red_conn_dens]
+    for tgtloc in tgtsloc_show:
+        ax.plot([srcloc[0], tgtloc[0]], [srcloc[1], tgtloc[1]],
+                [z0, z1], c=pops[src]['conn_color_light'], linewidth=1.)
+        # highlight target
+        ax.plot(xs=[tgtloc[0]], ys=[tgtloc[1]], zs=[z1],
+                marker='o',
+                markeredgecolor='none',
+                markersize=2, color=pops[src]['conn_color_dark'],
+                alpha=1.)
+
+    # to be printed on top
+    dots = [tgtsloc_show, z1, pops[src]['conn_color_dark'], 'none', 2]
+    srcdot = [srcloc, z0, 'white', 'black', 3]
+    return dots, srcdot
 
 
 def plot_dots(ax, dots):
-    for i,data in enumerate(dots):
-        if type(data[0][0]) == np.ndarray:
-            xs = zip(*data[0])[0]
-            ys = zip(*data[0])[1]
-        else:
-            xs = [data[0][0]]
-            ys = [data[0][1]]
-        ax.plot(xs, ys, zs=data[1], marker='o', markeredgecolor=data[3],
-                markersize=data[4], c=data[2], linestyle='none', alpha=1.)
+    if type(dots[0][0]) == np.ndarray:
+        xs = zip(*dots[0])[0]
+        ys = zip(*dots[0])[1]
+    else:
+        xs = [dots[0][0]]
+        ys = [dots[0][1]]
+    ax.plot(xs, ys, zs=dots[1], marker='o', markeredgecolor=dots[3],
+            markersize=dots[4], c=dots[2], linestyle='none', alpha=1.)
     return
 
 
@@ -1103,6 +1096,7 @@ def figure_raster(times):
 
 
     fig.savefig(os.path.join(spike_output_path, 'raster.pdf'), dpi=320)
+    fig.savefig(os.path.join(spike_output_path, 'raster.eps'), dpi=320)
 
 
 '''
