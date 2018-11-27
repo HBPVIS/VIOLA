@@ -3,6 +3,8 @@
  *
  * Port of greggman's ThreeD version of marching cubes to Three.js
  * http://webglsamples.googlecode.com/hg/blob/blob.html
+ *
+ * modified for VIOLA
  */
 THREE.MarchingCubes = function(xSize,
                                ySize,
@@ -566,11 +568,16 @@ THREE.MarchingCubes = function(xSize,
 
     this.reset();
 
-    var i, j, sizeSquare = this.sizeX * this.sizeY;
-    for (i = 0; i < this.sizeZ; i++) {
-      //for (i = 0; i < 40; i++){
-      for (j = 0; j < sizeSquare; j++) {
-        this.field[j + i * sizeSquare] = data[i + this.timeOffset][j];
+    var index, b, nb, row, col, sizeSquare = this.sizeX * this.sizeY;
+    for (index = 0; index < this.sizeZ; index++) {
+      for (b = 0; b < sizeSquare; b++) {
+        // new bin nb for same orientation of data as in other views
+        row = parseInt(b/this.sizeY);
+        col = b % this.sizeY;
+        nb = col * this.sizeX + row; // swap rows and columns
+        nb = sizeSquare - 1 - nb // mirror
+
+        this.field[nb + index * sizeSquare] = data[index + this.timeOffset][b];
       }
     }
   };
