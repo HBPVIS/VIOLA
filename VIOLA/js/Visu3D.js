@@ -519,8 +519,8 @@ Visu.Renderer3D = function(panel, data) {
     this.maxXctx.font = "20px sans-serif";
     this.maxXctx.fillStyle = "black";
     this.maxXctx.textBaseline = "middle";
-    this.maxXctx.fillText(this.data.xSize / 2,
-                          10 - this.maxXctx.measureText(this.data.xSize / 2)
+    this.maxXctx.fillText(-this.data.xSize / 2,
+                          10 - this.maxXctx.measureText(-this.data.xSize / 2)
                             .width / 2, 10);
     this.maxXTexture.needsUpdate = true;
 
@@ -535,8 +535,8 @@ Visu.Renderer3D = function(panel, data) {
     this.minXctx.font = "20px sans-serif";
     this.minXctx.fillStyle = "black";
     this.minXctx.textBaseline = "middle";
-    this.minXctx.fillText(-this.data.xSize / 2,
-                          10 - this.minXctx.measureText(-this.data.xSize / 2)
+    this.minXctx.fillText(this.data.xSize / 2,
+                          10 - this.minXctx.measureText(this.data.xSize / 2)
                             .width / 2, 10);
     this.minXTexture.needsUpdate = true;
 
@@ -551,8 +551,8 @@ Visu.Renderer3D = function(panel, data) {
     this.maxYctx.font = "20px sans-serif";
     this.maxYctx.fillStyle = "black";
     this.maxYctx.textBaseline = "middle";
-    this.maxYctx.fillText(this.data.ySize / 2,
-                          10 - this.maxYctx.measureText(this.data.ySize / 2)
+    this.maxYctx.fillText(-this.data.ySize / 2,
+                          10 - this.maxYctx.measureText(-this.data.ySize / 2)
                             .width / 2, 10);
     this.maxYTexture.needsUpdate = true;
 
@@ -567,8 +567,8 @@ Visu.Renderer3D = function(panel, data) {
     this.minYctx.font = "20px sans-serif";
     this.minYctx.fillStyle = "black";
     this.minYctx.textBaseline = "middle";
-    this.minYctx.fillText(-this.data.ySize / 2,
-                          10 - this.minYctx.measureText(-this.data.ySize / 2)
+    this.minYctx.fillText(this.data.ySize / 2,
+                          10 - this.minYctx.measureText(this.data.ySize / 2)
                             .width / 2, 10);
     this.minYTexture.needsUpdate = true;
 
@@ -583,7 +583,7 @@ Visu.Renderer3D = function(panel, data) {
     this.xctx.font = "20px sans-serif";
     this.xctx.fillStyle = "black";
     this.xctx.textBaseline = "middle";
-    this.xctx.fillText("x(mm)", 30 - this.xctx.measureText("x(mm)")
+    this.xctx.fillText("x (mm)", 30 - this.xctx.measureText("x (mm)")
                          .width / 2, 30);
     this.xTexture.needsUpdate = true;
 
@@ -599,7 +599,7 @@ Visu.Renderer3D = function(panel, data) {
     this.yctx.font = "20px sans-serif";
     this.yctx.fillStyle = "black";
     this.yctx.textBaseline = "middle";
-    this.yctx.fillText("y(mm)", 30 - this.yctx.measureText("y(mm)")
+    this.yctx.fillText("y (mm)", 30 - this.yctx.measureText("y (mm)")
       .width / 2, 30);
     this.yTexture.needsUpdate = true;
 
